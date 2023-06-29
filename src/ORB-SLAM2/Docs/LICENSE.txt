@@ -5,7 +5,3 @@ For a closed-source version of ORB-SLAM2 for commercial purposes, please contact
 
 If you use ORB-SLAM in an academic work, please cite the most relevant publication associated by visiting:
 https://github.com/raulmur/ORB_SLAM2
-
-
-
-

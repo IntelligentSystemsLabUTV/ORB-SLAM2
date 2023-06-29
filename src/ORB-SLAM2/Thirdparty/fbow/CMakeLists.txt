@@ -232,7 +232,7 @@ add_definitions(-DNOMINMAX)
 
 
 ENDIF()#END OF COMPILER SPECIFIC OPTIONS
-find_package(OpenMP  )
+find_package(OpenMP)
 if (OPENMP_FOUND)
         add_compile_options(-DUSE_OPENMP)
         set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
