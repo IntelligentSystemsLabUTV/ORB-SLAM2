@@ -74,7 +74,7 @@ add_library(orbslam2 SHARED
   src/Viewer.cc
   src/HPose.cpp)
 target_include_directories(orbslam2 PUBLIC
-  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/ORB_SLAM2>
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
   $<INSTALL_INTERFACE:include>
   ${Eigen3_INCLUDE_DIRS}
   ${g2o_INCLUDE_DIRS}
@@ -97,14 +97,14 @@ ament_target_dependencies(orbslam2
 # Library installation
 install(
   DIRECTORY include/
-  DESTINATION include)
+  DESTINATION include/ORB_SLAM2)
 install(
   TARGETS orbslam2
   EXPORT orbslam2Targets
   ARCHIVE DESTINATION lib
   LIBRARY DESTINATION lib
   RUNTIME DESTINATION bin
-  INCLUDES DESTINATION include)
+  INCLUDES DESTINATION include/ORB_SLAM2)
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
