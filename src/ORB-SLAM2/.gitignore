@@ -1,3 +1,8 @@
+# Uncompressed vocabulary files
+Vocabulary/*
+!Vocabulary/orb_mur.fbow.tar.gz
+
+# Stuff
 KeyFrameTrajectory.txt
 depth/
 infrared/

@@ -106,6 +106,14 @@ install(
   RUNTIME DESTINATION bin
   INCLUDES DESTINATION include/ORB_SLAM2)
 
+# Uncompress FBOW vocabulary
+if(NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/Vocabulary/orb_mur.fbow")
+  message(STATUS "Uncompressing FBOW vocabulary...")
+  execute_process(
+    COMMAND tar -xf "orb_mur.fbow.tar.gz"
+    WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/Vocabulary")
+endif()
+
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
   # the following line skips the linter which checks for copyrights
