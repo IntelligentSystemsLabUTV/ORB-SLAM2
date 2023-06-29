@@ -21,15 +21,15 @@
 #ifndef KEYFRAME_H
 #define KEYFRAME_H
 
-#include "MapPoint.h"
-#include "ORBextractor.h"
+#include <mutex>
+
+#include "BoostArchiver.h"
 #include "Frame.h"
 #include "KeyFrameDatabase.h"
+#include "MapPoint.h"
+#include "ORBextractor.h"
 
-#include <mutex>
-#include "BoostArchiver.h"
-
-#include "Thirdparty/fbow/include/fbow/fbow.h"
+#include <fbow/fbow.h>
 
 namespace ORB_SLAM2
 {

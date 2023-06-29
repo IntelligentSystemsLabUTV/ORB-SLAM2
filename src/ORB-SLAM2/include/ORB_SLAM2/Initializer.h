@@ -17,12 +17,13 @@
 * You should have received a copy of the GNU General Public License
 * along with ORB-SLAM2. If not, see <http://www.gnu.org/licenses/>.
 */
+
 #ifndef INITIALIZER_H
 #define INITIALIZER_H
 
-#include<opencv2/opencv.hpp>
-#include "Frame.h"
+#include <opencv2/opencv.hpp>
 
+#include "Frame.h"
 
 namespace ORB_SLAM2
 {

@@ -10,7 +10,7 @@
 #include <vector>
 #include <iomanip>
 
-#include<opencv2/core/core.hpp>
+#include <opencv2/core/core.hpp>
 
 namespace ORB_SLAM2
 {
@@ -49,6 +49,5 @@ namespace ORB_SLAM2
     std::ostream& operator<<(std::ostream& os, const HPose& pose);
 
 }
-
 
 #endif //ORB_SLAM2_HPOSE_H

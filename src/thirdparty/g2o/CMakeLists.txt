@@ -80,7 +80,7 @@ find_package(ament_cmake_ros REQUIRED)
 
 # Generate config.h
 SET(G2O_CXX_COMPILER "${CMAKE_CXX_COMPILER_ID} ${CMAKE_CXX_COMPILER}")
-configure_file(config.h.in ${g2o_SOURCE_DIR}/config.h)
+configure_file(config.h.in ${g2o_SOURCE_DIR}/g2o/core/config.h)
 
 # Configure the top-level include directories
 INCLUDE_DIRECTORIES(
@@ -174,20 +174,22 @@ ADD_LIBRARY(g2o SHARED
   g2o/stuff/os_specific.h
   g2o/stuff/string_tools.cpp
   g2o/stuff/property.cpp
-  g2o/stuff/property.h
-)
+  g2o/stuff/property.h)
 
 # Library installation
 install(DIRECTORY "g2o/"
-  DESTINATION include
+  DESTINATION include/g2o
   FILES_MATCHING PATTERN "*.h")
+install(DIRECTORY "g2o/"
+  DESTINATION include/g2o
+  FILES_MATCHING PATTERN "*.hpp")
 install(
   TARGETS g2o
   EXPORT g2oTargets
   ARCHIVE DESTINATION lib
   LIBRARY DESTINATION lib
   RUNTIME DESTINATION bin
-  INCLUDES DESTINATION include)
+  INCLUDES DESTINATION include/g2o)
 
 if(BUILD_TESTING)
   find_package(ament_lint_auto REQUIRED)
@@ -202,5 +204,6 @@ if(BUILD_TESTING)
 endif()
 
 ament_export_targets(g2oTargets HAS_LIBRARY_TARGET)
+ament_export_include_directories(include)
 
 ament_package()

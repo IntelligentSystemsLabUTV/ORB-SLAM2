@@ -42,7 +42,7 @@
 // for map file io
 #include <fstream>
 
-#include "Thirdparty/fbow/include/fbow/fbow.h"
+#include <fbow/fbow.h>
 
 using namespace std;
 

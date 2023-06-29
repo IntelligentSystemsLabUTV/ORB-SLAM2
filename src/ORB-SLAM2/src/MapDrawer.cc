@@ -18,16 +18,15 @@
 * along with ORB-SLAM2. If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <mutex>
+
+#include <pangolin/pangolin.h>
+
+#include "Converter.h"
 #include "MapDrawer.h"
 #include "MapPoint.h"
 #include "KeyFrame.h"
-#include <pangolin/pangolin.h>
-#include <mutex>
-#include <include/Converter.h>
-#include <include/MapDrawer.h>
-
 #include "System.h"
-
 
 namespace ORB_SLAM2
 {

@@ -21,13 +21,13 @@
 #ifndef MAP_H
 #define MAP_H
 
-#include "MapPoint.h"
-#include "KeyFrame.h"
+#include <mutex>
 #include <set>
 
-#include <mutex>
-
 #include "BoostArchiver.h"
+#include "KeyFrame.h"
+#include "MapPoint.h"
+
 
 using namespace std;
 

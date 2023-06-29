@@ -18,13 +18,12 @@
 * along with ORB-SLAM2. If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <thread>
+
+#include <dlib/Random.h>
+
 #include "Initializer.h"
-
-#include "Thirdparty/DLib/include/Random.h"
-
 #include "ORBmatcher.h"
-
-#include<thread>
 
 namespace ORB_SLAM2
 {

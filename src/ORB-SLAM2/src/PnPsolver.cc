@@ -48,16 +48,17 @@
 *   either expressed or implied, of the FreeBSD Project
 */
 
+#include <algorithm>
+#include <cmath>
 #include <iostream>
+#include <vector>
+
+#include <opencv2/core/core.hpp>
+#include <opencv2/core/core_c.h>
 
 #include "PnPsolver.h"
 
-#include <vector>
-#include <cmath>
-#include <opencv2/core/core.hpp>
-#include <opencv2/core/core_c.h>
-#include "Thirdparty/DLib/include/Random.h"
-#include <algorithm>
+#include <dlib/Random.h>
 
 using namespace std;
 

@@ -18,15 +18,15 @@
 * along with ORB-SLAM2. If not, see <http://www.gnu.org/licenses/>.
 */
 
-
-
-#include "System.h"
-#include "Converter.h"
-#include <thread>
-#include <pangolin/pangolin.h>
-#include <iomanip>
 #include <algorithm>
 #include <chrono>
+#include <iomanip>
+#include <thread>
+
+#include <pangolin/pangolin.h>
+
+#include "Converter.h"
+#include "System.h"
 
 namespace ORB_SLAM2
 {

@@ -3,11 +3,8 @@
 // Copyright (c) 2018 Felix Holz All rights reserved.
 //
 
-#include <include/HPose.h>
-
 #include "Converter.h"
 #include "HPose.h"
-
 
 ORB_SLAM2::HPose::HPose()
     : m_Position(0, 0, 0), m_Rotation(0, 0, 0, 0), _empty(true)

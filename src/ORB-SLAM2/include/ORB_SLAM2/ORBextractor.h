@@ -45,7 +45,7 @@ public:
 class ORBextractor
 {
 public:
-    
+
     enum {HARRIS_SCORE=0, FAST_SCORE=1 };
 
     ORBextractor(int nfeatures, float scaleFactor, int nlevels, int iniThFAST, int minThFAST, int patchSize, int halfPatchSize, int edgeThreshold);

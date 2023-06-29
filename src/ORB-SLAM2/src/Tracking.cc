@@ -18,25 +18,20 @@
 * along with ORB-SLAM2. If not, see <http://www.gnu.org/licenses/>.
 */
 
-
-#include "Tracking.h"
-
-#include<opencv2/core/core.hpp>
-#include<opencv2/features2d/features2d.hpp>
-
-#include"ORBmatcher.h"
-#include"FrameDrawer.h"
-#include"Converter.h"
-#include"Map.h"
-#include"Initializer.h"
-
-#include"Optimizer.h"
-#include"PnPsolver.h"
-
 #include<iostream>
-
 #include<mutex>
 
+#include <opencv2/core/core.hpp>
+#include <opencv2/features2d/features2d.hpp>
+
+#include "Converter.h"
+#include "FrameDrawer.h"
+#include "Initializer.h"
+#include "Map.h"
+#include "ORBmatcher.h"
+#include "Optimizer.h"
+#include "PnPsolver.h"
+#include "Tracking.h"
 
 using namespace std;
 

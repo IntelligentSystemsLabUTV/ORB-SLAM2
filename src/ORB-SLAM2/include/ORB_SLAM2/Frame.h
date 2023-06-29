@@ -21,15 +21,15 @@
 #ifndef FRAME_H
 #define FRAME_H
 
-#include<vector>
-
-#include "MapPoint.h"
-#include "KeyFrame.h"
-#include "ORBextractor.h"
+#include <vector>
 
 #include <opencv2/opencv.hpp>
 
-#include "Thirdparty/fbow/include/fbow/fbow.h"
+#include "KeyFrame.h"
+#include "MapPoint.h"
+#include "ORBextractor.h"
+
+#include <fbow/fbow.h>
 
 namespace ORB_SLAM2
 {

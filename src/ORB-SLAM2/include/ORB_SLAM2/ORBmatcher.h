@@ -22,13 +22,13 @@
 #ifndef ORBMATCHER_H
 #define ORBMATCHER_H
 
-#include<vector>
-#include<opencv2/core/core.hpp>
-#include<opencv2/features2d/features2d.hpp>
+#include <vector>
+#include <opencv2/core/core.hpp>
+#include <opencv2/features2d/features2d.hpp>
 
-#include"MapPoint.h"
-#include"KeyFrame.h"
-#include"Frame.h"
+#include "MapPoint.h"
+#include "KeyFrame.h"
+#include "Frame.h"
 
 using namespace std;
 
@@ -36,7 +36,7 @@ namespace ORB_SLAM2
 {
 
 class ORBmatcher
-{    
+{
 public:
 
     ORBmatcher(float nnratio=0.6, bool checkOri=true);

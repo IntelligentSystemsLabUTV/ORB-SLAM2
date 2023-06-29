@@ -18,18 +18,17 @@
 * along with ORB-SLAM2. If not, see <http://www.gnu.org/licenses/>.
 */
 
-
-#include "Sim3Solver.h"
-
 #include <vector>
 #include <cmath>
+
 #include <opencv2/core/core.hpp>
 #include <opencv2/core/core_c.h>
 
 #include "KeyFrame.h"
 #include "ORBmatcher.h"
+#include "Sim3Solver.h"
 
-#include "Thirdparty/DLib/include/Random.h"
+#include <dlib/Random.h>
 
 namespace ORB_SLAM2
 {

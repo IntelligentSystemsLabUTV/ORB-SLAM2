@@ -18,14 +18,13 @@
 * along with ORB-SLAM2. If not, see <http://www.gnu.org/licenses/>.
 */
 
+#include <limits.h>
+#include <stdint-gcc.h>
+
+#include <opencv2/core/core.hpp>
+#include <opencv2/features2d/features2d.hpp>
+
 #include "ORBmatcher.h"
-
-#include<limits.h>
-
-#include<opencv2/core/core.hpp>
-#include<opencv2/features2d/features2d.hpp>
-
-#include<stdint-gcc.h>
 
 using namespace std;
 

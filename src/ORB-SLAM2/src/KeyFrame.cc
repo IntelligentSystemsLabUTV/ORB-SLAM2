@@ -18,10 +18,11 @@
 * along with ORB-SLAM2. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "KeyFrame.h"
+#include <mutex>
+
 #include "Converter.h"
+#include "KeyFrame.h"
 #include "ORBmatcher.h"
-#include<mutex>
 
 namespace ORB_SLAM2
 {

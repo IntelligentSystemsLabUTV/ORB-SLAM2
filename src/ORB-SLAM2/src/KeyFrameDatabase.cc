@@ -18,11 +18,10 @@
 * along with ORB-SLAM2. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "KeyFrameDatabase.h"
+#include <mutex>
 
 #include "KeyFrame.h"
-
-#include<mutex>
+#include "KeyFrameDatabase.h"
 
 using namespace std;
 

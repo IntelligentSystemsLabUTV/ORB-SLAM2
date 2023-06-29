@@ -18,9 +18,9 @@
 * along with ORB-SLAM2. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#include "Map.h"
+#include <mutex>
 
-#include<mutex>
+#include "Map.h"
 
 namespace ORB_SLAM2
 {

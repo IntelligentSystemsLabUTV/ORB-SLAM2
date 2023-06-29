@@ -21,17 +21,16 @@
 #ifndef KEYFRAMEDATABASE_H
 #define KEYFRAMEDATABASE_H
 
-#include <vector>
 #include <list>
+#include <mutex>
 #include <set>
+#include <vector>
 
+#include "BoostArchiver.h"
 #include "KeyFrame.h"
 #include "Frame.h"
 
-#include<mutex>
-#include "BoostArchiver.h"
-
-#include "Thirdparty/fbow/include/fbow/fbow.h"
+#include <fbow/fbow.h>
 
 namespace ORB_SLAM2
 {

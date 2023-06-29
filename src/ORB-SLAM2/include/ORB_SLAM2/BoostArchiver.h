@@ -22,7 +22,7 @@
 #include <boost/serialization/base_object.hpp>
 #include <opencv2/core/core.hpp>
 
-#include "Thirdparty/fbow/include/fbow/fbow.h"
+#include <fbow/fbow.h>
 
 BOOST_SERIALIZATION_SPLIT_FREE(::cv::Mat)
 namespace boost{

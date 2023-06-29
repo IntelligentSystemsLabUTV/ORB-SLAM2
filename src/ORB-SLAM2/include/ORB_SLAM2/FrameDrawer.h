@@ -18,47 +18,55 @@
 * along with ORB-SLAM2. If not, see <http://www.gnu.org/licenses/>.
 */
 
-#ifndef MAPDRAWER_H
-#define MAPDRAWER_H
+#ifndef FRAMEDRAWER_H
+#define FRAMEDRAWER_H
 
-#include"Map.h"
-#include"MapPoint.h"
-#include"KeyFrame.h"
-#include<pangolin/pangolin.h>
+#include <mutex>
 
-#include<mutex>
+#include <opencv2/core/core.hpp>
+#include <opencv2/features2d/features2d.hpp>
+
+#include "Tracking.h"
+#include "MapPoint.h"
+#include "Map.h"
 
 namespace ORB_SLAM2
 {
 
-class MapDrawer
+class Tracking;
+class Viewer;
+
+class FrameDrawer
 {
 public:
-    MapDrawer(Map* pMap, const std::string &strSettingPath);
+    FrameDrawer(Map* pMap, bool bReuseMap=false);
+
+    // Update info from the last processed frame.
+    void Update(Tracking *pTracker);
+
+    // Draw last processed frame.
+    cv::Mat DrawFrame();
+
+protected:
+
+    void DrawTextInfo(cv::Mat &im, int nState, cv::Mat &imText);
+
+    // Info of the frame to be drawn
+    cv::Mat mIm;
+    int N;
+    std::vector<cv::KeyPoint> mvCurrentKeys;
+    std::vector<bool> mvbMap, mvbVO;
+    bool mbOnlyTracking;
+    int mnTracked, mnTrackedVO;
+    std::vector<cv::KeyPoint> mvIniKeys;
+    std::vector<int> mvIniMatches;
+    int mState;
 
     Map* mpMap;
 
-    void DrawMapPoints();
-    void DrawKeyFrames(const bool bDrawKF, const bool bDrawGraph);
-    void DrawCurrentCamera(pangolin::OpenGlMatrix &Twc);
-    void SetCurrentCameraPose(const cv::Mat &Tcw);
-    void SetReferenceKeyFrame(KeyFrame *pKF);
-    void GetCurrentOpenGLCameraMatrix(pangolin::OpenGlMatrix &M);
-    void SetSystemCameraPose(void* mpSystem); //Twc matrix, system pointer
-
-private:
-    float mKeyFrameSize;
-    float mKeyFrameLineWidth;
-    float mGraphLineWidth;
-    float mPointSize;
-    float mCameraSize;
-    float mCameraLineWidth;
-
-    cv::Mat mCameraPose;
-
-    std::mutex mMutexCamera;
+    std::mutex mMutex;
 };
 
 } //namespace ORB_SLAM
 
-#endif // MAPDRAWER_H
+#endif // FRAMEDRAWER_H

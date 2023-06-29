@@ -21,18 +21,18 @@
 #ifndef LOOPCLOSING_H
 #define LOOPCLOSING_H
 
+#include <mutex>
+#include <thread>
+
 #include "KeyFrame.h"
+#include "KeyFrameDatabase.h"
 #include "LocalMapping.h"
 #include "Map.h"
 #include "Tracking.h"
 
-#include "KeyFrameDatabase.h"
+#include <g2o/types/types_seven_dof_expmap.h>
 
-#include <thread>
-#include <mutex>
-#include "Thirdparty/g2o/g2o/types/types_seven_dof_expmap.h"
-
-#include "Thirdparty/fbow/include/fbow/fbow.h"
+#include <fbow/fbow.h>
 
 using namespace std;
 
@@ -48,7 +48,7 @@ class LoopClosing
 {
 public:
 
-  typedef pair<set<KeyFrame*>,int> ConsistentGroup;    
+  typedef pair<set<KeyFrame*>,int> ConsistentGroup;
   typedef map<KeyFrame*, g2o::Sim3, std::less<KeyFrame*>, Eigen::aligned_allocator<std::pair<KeyFrame* const, g2o::Sim3>>> KeyFrameAndPose;
 
 public:
