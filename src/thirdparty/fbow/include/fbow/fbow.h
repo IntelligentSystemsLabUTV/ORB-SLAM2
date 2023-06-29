@@ -117,7 +117,7 @@ private:
     void setParams(int aligment, int k, int desc_type, int desc_size, int nblocks, std::string desc_name);
 
     struct params{
-        char _desc_name_[50];//descriptor name. May be empty
+        char _desc_name_[50]{};//descriptor name. May be empty
         uint32_t _aligment=0,_nblocks=0 ;//memory aligment and total number of blocks
         uint64_t _desc_size_bytes_wp=0;//size of the descriptor(includes padding)
         uint64_t _block_size_bytes_wp=0;//size of a block   (includes padding)

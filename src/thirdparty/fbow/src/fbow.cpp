@@ -1,4 +1,4 @@
-#include "fbow.h"
+#include <fbow/fbow.h>
 #include <fstream>
 #include <cstring>
 #include <limits>
@@ -150,8 +150,7 @@ fBow Vocabulary::transform(const cv::Mat &features)
 void Vocabulary::clear()
 {
     _data.reset();
-    memset(&_params, 0, sizeof(_params));
-    _params._desc_name_[0] = '\0';
+    _params = params{};
 }
 
 // loads/saves from a file
