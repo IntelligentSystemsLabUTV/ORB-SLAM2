@@ -33,6 +33,11 @@ RUN git clone --single-branch --branch 'v0.8' --depth 1 https://github.com/steve
   chgrp -R internal /opt/Pangolin && \
   chmod -R g+rwx /opt/Pangolin
 WORKDIR /root
+
+# Hotfix required for libboost 1.74, default version in Ubuntu 22.04 and required by a binary
+# installation of ROS 2
+RUN sed -i 's/#include <boost\/config.hpp>/#include <boost\/config.hpp>\n#include <boost\/archive\/detail\/basic_iarchive.hpp>\n#include <boost\/serialization\/version.hpp>/' /usr/include/boost/serialization/list.hpp && \
+  sed -i 's/boost::serialization::library_version_type/boost::archive::library_version_type/g' /usr/include/boost/serialization/list.hpp
 # ORB-SLAM2 END #
 # IMAGE SETUP END #
 
