@@ -8,9 +8,11 @@
  *
  */
 
-#include "../include/Random.h"
-#include "../include/Timestamp.h"
 #include <cstdlib>
+
+#include <dlib/Random.h>
+#include <dlib/Timestamp.h>
+
 using namespace std;
 
 bool DUtils::Random::m_already_seeded = false;
