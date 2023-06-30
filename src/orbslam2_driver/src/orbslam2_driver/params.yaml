@@ -1,0 +1,52 @@
+header_include_path: orbslam2_driver/orbslam2_driver.hpp
+namespace: ORB_SLAM2Driver
+node_class_name: ORB_SLAM2DriverNode
+
+params:
+  autostart:
+    type: bool
+    default_value: true
+    description: "Activates system automatically at node startup."
+    constraints: "Cannot be changed."
+    read_only: true
+    var_name: autostart_
+
+  camera_topic_1:
+    type: string
+    default_value: "/camera/image_raw"
+    description: "Name of the first camera topic."
+    constraints: "Changes require system restart."
+    read_only: false
+    var_name: camera_topic_1_
+
+  camera_topic_2:
+    type: string
+    default_value: "/camera/image_raw"
+    description: "Name of the second camera topic."
+    constraints: "Changes require system restart."
+    read_only: false
+    var_name: camera_topic_2_
+
+  link_namespace:
+    type: string
+    default_value: ""
+    description: "Link namespace, including the trailing slash."
+    constraints: "Cannot be changed."
+    read_only: true
+    var_name: link_namespace_
+
+  orb2_config_path:
+    type: string
+    default_value: ""
+    description: "Path to the ORB-SLAM2 configuration file."
+    constraints: "Changes require system restart."
+    read_only: false
+    var_name: orb2_config_path_
+
+  vocabulary_path:
+    type: string
+    default_value: ""
+    description: "Path to the ORB vocabulary file."
+    constraints: "Changes require system restart."
+    read_only: false
+    var_name: vocabulary_path_
