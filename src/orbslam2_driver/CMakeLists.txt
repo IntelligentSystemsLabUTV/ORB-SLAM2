@@ -21,6 +21,7 @@ set(THREADS_PREFER_PTHREAD_FLAG ON)
 
 # Find dependencies
 find_package(ament_cmake REQUIRED)
+find_package(builtin_interfaces REQUIRED)
 find_package(dua_app_management REQUIRED)
 find_package(dua_interfaces REQUIRED)
 find_package(dua_node REQUIRED)
@@ -66,6 +67,7 @@ target_link_libraries(orbslam2_driver
   ${OpenCV_LIBS}
   Threads::Threads)
 ament_target_dependencies(orbslam2_driver
+  builtin_interfaces
   dua_interfaces
   dua_node
   dua_qos

@@ -53,7 +53,7 @@ class System;
 class Optimizer;
 
 class Tracking
-{  
+{
 
 public:
     Tracking(System* pSys, fbow::Vocabulary* pVoc, FrameDrawer* pFrameDrawer, MapDrawer* pMapDrawer, Map* pMap, KeyFrameDatabase* pKFDB, const string &strSettingPath, const int sensor, bool bReuseMap=false);

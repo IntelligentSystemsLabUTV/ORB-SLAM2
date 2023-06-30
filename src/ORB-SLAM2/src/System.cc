@@ -714,7 +714,7 @@ cv::Mat System::GetCurrentCovarianceMatrix(float fx, float fy, cv::Mat cameraPos
     Rcg.at<float>(2,0) = cameraPose.at<float>(2,0);
     Rcg.at<float>(2,1) = cameraPose.at<float>(2,1);
     Rcg.at<float>(2,2) = cameraPose.at<float>(2,2);
-    
+
     if (rotationInverse)
       Rcg = Rcg.inv();
 

@@ -11,6 +11,14 @@ params:
     read_only: true
     var_name: autostart_
 
+  camera_orientation_topic:
+    type: string
+    default_value: "/camera/orientation"
+    description: "Name of the camera orientation (IMU) topic."
+    constraints: "Changes require system restart."
+    read_only: false
+    var_name: camera_orientation_topic_
+
   camera_topic_1:
     type: string
     default_value: "/camera/image_raw"
@@ -27,6 +35,14 @@ params:
     read_only: false
     var_name: camera_topic_2_
 
+  display:
+    type: bool
+    default_value: false
+    description: "Activates the MapViewer GUI with Pangolin."
+    constraints: "Changes require system restart, do not use on headless systems."
+    read_only: false
+    var_name: display_
+
   link_namespace:
     type: string
     default_value: ""
@@ -35,6 +51,14 @@ params:
     read_only: true
     var_name: link_namespace_
 
+  mode:
+    type: string
+    default_value: "STEREO"
+    description: "ORB-SLAM2 mode, either MONOCULAR, STEREO, RGBD, or IRD."
+    constraints: "Changes require system restart."
+    read_only: false
+    validator: validate_mode
+
   orb2_config_path:
     type: string
     default_value: ""
@@ -42,6 +66,14 @@ params:
     constraints: "Changes require system restart."
     read_only: false
     var_name: orb2_config_path_
+
+  verbose:
+    type: bool
+    default_value: false
+    description: "Activates verbose output."
+    constraints: "Changes require system restart."
+    read_only: false
+    var_name: verbose_
 
   vocabulary_path:
     type: string

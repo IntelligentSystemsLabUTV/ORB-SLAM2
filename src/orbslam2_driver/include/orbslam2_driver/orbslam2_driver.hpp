@@ -12,6 +12,7 @@
 
 #include <atomic>
 #include <chrono>
+#include <cstdlib>
 #include <memory>
 #include <mutex>
 #include <stdexcept>
@@ -52,6 +53,7 @@
 #include <tf2_ros/buffer.h>
 #include <tf2_ros/transform_listener.h>
 
+#include <builtin_interfaces/msg/time.hpp>
 #include <dua_interfaces/msg/point_cloud2_with_roi.hpp>
 #include <geometry_msgs/msg/pose_with_covariance_stamped.hpp>
 #include <geometry_msgs/msg/transform_stamped.hpp>
@@ -64,6 +66,7 @@
 
 #include <std_srvs/srv/set_bool.hpp>
 
+using namespace builtin_interfaces::msg;
 using namespace dua_interfaces::msg;
 using namespace geometry_msgs::msg;
 using namespace sensor_msgs::msg;
@@ -97,27 +100,86 @@ private:
   void init_tf_listeners();
   void init_subscriptions();
 
+  /* TF listeners, timer, and related data. */
+  std::string map_frame_;
+  std::string odom_frame_;
+  std::string orb2_odom_frame_;
+  std::shared_ptr<tf2_ros::Buffer> tf_buffer_;
+  std::shared_ptr<tf2_ros::TransformListener> tf_listener_;
+  std::mutex tf_lock_;
+  TransformStamped odom_to_camera_odom_{};
+  TransformStamped base_link_to_camera_{};
+  TransformStamped map_to_camera_odom_{};
+  rclcpp::TimerBase::SharedPtr tf_timer_;
+  void tf_timer_callback();
+
+  /* Topic subscriptions. */
+  rclcpp::Subscription<Imu>::SharedPtr camera_imu_sub_;
+
+  /* Topic subscription callbacks. */
+  void camera_imu_callback(const Imu::SharedPtr msg);
+
+  /* Topic publishers. */
+  rclcpp::Publisher<PoseWithCovarianceStamped>::SharedPtr pose_pub_;
+  rclcpp::Publisher<PoseWithCovarianceStamped>::SharedPtr rviz_pose_pub_;
+
+  /* Service servers. */
+  rclcpp::Service<SetBool>::SharedPtr enable_srv_;
+
+  /* Service callbacks. */
+  void enable_callback(
+    SetBool::Request::SharedPtr req,
+    SetBool::Response::SharedPtr res);
+
+  /* image_transport subscribers and synchronizers. */
+  std::shared_ptr<image_transport::SubscriberFilter> camera_1_sub_;
+  std::shared_ptr<image_transport::SubscriberFilter> camera_2_sub_;
+  std::shared_ptr<ImageSynchronizer> stereo_sync_;
+
+  /* Camera callbacks. */
+  void stereo_callback(
+    const Image::ConstSharedPtr & camera_1_msg,
+    const Image::ConstSharedPtr & camera_2_msg);
+
   /* Node parameters. */
   bool autostart_;
+  std::string camera_orientation_topic_;
   std::string camera_topic_1_;
   std::string camera_topic_2_;
+  bool display_;
   std::string link_namespace_;
+  ORB_SLAM2::System::eSensor mode_ = ORB_SLAM2::System::eSensor::STEREO;
   std::string orb2_config_path_;
   std::string vocabulary_path_;
+  bool verbose_;
+
+  /* Node parameters validators. */
+  bool validate_mode(const rclcpp::Parameter & p);
 
   /* Worker thread, routine, and data. */
   std::thread orb2_thread_;
   void orb2_thread_routine();
+  sem_t orb2_thread_sem_1_;
+  sem_t orb2_thread_sem_2_;
+  cv::Mat camera_1_frame_;
+  cv::Mat camera_2_frame_;
 
   /* Internal state variables. */
-  std::atomic<bool> is_running_;
+  std::atomic<bool> running_;
+  PoseKit::Pose init_pose_{};
+  std::mutex init_pose_lock_;
 
   /* ORB-SLAM2 data. */
+  std::shared_ptr<ORB_SLAM2::System> orb2_ = nullptr;
 
   /* Auxiliary routines. */
   void init_orbslam2();
   void fini_orbslam2();
-  void hpose_to_pose(const ORB_SLAM2::HPose & hpose, PoseKit::Pose & pose);
+  PoseKit::Pose hpose_to_pose(
+    const ORB_SLAM2::HPose & hpose,
+    std::string && frame_id,
+    const Time & ts,
+    const cv::Mat & cov = cv::Mat::zeros(6,6,CV_32F));
 };
 
 } // namespace ORB_SLAM2Driver

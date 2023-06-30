@@ -12,6 +12,58 @@
 namespace ORB_SLAM2Driver
 {
 
+/**
+ * @brief Routine to initialize atomic members.
+ */
+void ORB_SLAM2DriverNode::init_atomics()
+{
+  running_.store(false, std::memory_order_release);
+}
+
+/**
+ * @brief Routine to initialize synchronization primitives.
+ *
+ * @throws RuntimeError if some initialization fails.
+ */
+void ORB_SLAM2DriverNode::init_sync_primitives()
+{
+  if (sem_init(&orb2_thread_sem_1_, 0, 1) ||
+    sem_init(&orb2_thread_sem_2_, 0, 0))
+  {
+    perror("sem_init");
+    throw std::runtime_error(
+            "ORB_SLAM2DriverNode::init_sync_primitives: Failed to initialize semaphores.");
+  }
+}
+
+/**
+ * @brief Initializes TF listeners and their timer.
+ */
+void ORB_SLAM2DriverNode::init_tf_listeners()
+{
+  // Initialize TF buffers and listeners
+  tf_buffer_ = std::make_shared<tf2_ros::Buffer>(this->get_clock());
+  tf_listener_ = std::make_shared<tf2_ros::TransformListener>(*tf_buffer_);
+
+  // Initialize local data
+  map_frame_ = "map";
+  odom_frame_ = link_namespace_ + "odom";
+  orb2_odom_frame_ = link_namespace_ + "orb2_odom";
+  odom_to_camera_odom_.header.set__frame_id(odom_frame_);
+  odom_to_camera_odom_.set__child_frame_id(orb2_odom_frame_);
+  map_to_camera_odom_.header.set__frame_id(map_frame_);
+  map_to_camera_odom_.set__child_frame_id(orb2_odom_frame_);
+  base_link_to_camera_.header.set__frame_id(link_namespace_ + "base_link");
+  base_link_to_camera_.set__child_frame_id(link_namespace_ + "orb2_link");
+
+  // Initlaize TF timer
+  tf_timer_ = this->create_wall_timer(
+    std::chrono::seconds(1),
+    std::bind(
+      &ORB_SLAM2DriverNode::tf_timer_callback,
+      this));
+}
+
 } // namespace ORB_SLAM2Driver
 
 #include <rclcpp_components/register_node_macro.hpp>
