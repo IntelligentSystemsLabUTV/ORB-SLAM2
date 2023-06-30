@@ -124,7 +124,7 @@ System::System(const string &strVocFile, const string &strSettingsFile, const eS
     mpLoopCloser->SetLocalMapper(mpLocalMapper);
 }
 
-cv::Mat System::TrackStereo(const cv::Mat &imLeft, const cv::Mat &imRight, const double &timestamp)
+HPose System::TrackStereo(const cv::Mat &imLeft, const cv::Mat &imRight, const double &timestamp)
 {
     if(mSensor != STEREO)
     {
@@ -183,15 +183,18 @@ cv::Mat System::TrackStereo(const cv::Mat &imLeft, const cv::Mat &imRight, const
     }
 
     cv::Mat Tcw = mpTracker->GrabImageStereo(imLeft, imRight, timestamp);
+    HPose pose{};
+    pose_mat_to_hpose(Tcw, pose);
 
     unique_lock<mutex> lock2(mMutexState);
     mTrackingState = mpTracker->mState;
     mTrackedMapPoints = mpTracker->mCurrentFrame.mvpMapPoints;
     mTrackedKeyPointsUn = mpTracker->mCurrentFrame.mvKeysUn;
-    return Tcw;
+
+    return pose;
 }
 
-cv::Mat System::TrackRGBD(const cv::Mat &im, const cv::Mat &depthmap, const double &timestamp)
+HPose System::TrackRGBD(const cv::Mat &im, const cv::Mat &depthmap, const double &timestamp)
 {
     if(mSensor!=RGBD)
     {
@@ -234,13 +237,15 @@ cv::Mat System::TrackRGBD(const cv::Mat &im, const cv::Mat &depthmap, const doub
     }
 
     cv::Mat Tcw = mpTracker->GrabImageRGBD(im, depthmap, timestamp);
+    HPose pose{};
+    pose_mat_to_hpose(Tcw, pose);
 
     unique_lock<mutex> lock2(mMutexState);
     mTrackingState = mpTracker->mState;
     mTrackedMapPoints = mpTracker->mCurrentFrame.mvpMapPoints;
     mTrackedKeyPointsUn = mpTracker->mCurrentFrame.mvKeysUn;
 
-    return Tcw;
+    return pose;
 }
 
 // Overload of the track RGBD function
@@ -286,43 +291,19 @@ HPose System::TrackIRD(const cv::Mat &im, const cv::Mat &depthmap, const double 
         }
     }
 
-    cv::Mat _Tcw = mpTracker->GrabImageRGBD(im, depthmap, timestamp);
+    cv::Mat Tcw = mpTracker->GrabImageRGBD(im, depthmap, timestamp);
+    HPose pose{};
+    pose_mat_to_hpose(Tcw, pose);
 
     unique_lock<mutex> lock2(mMutexState);
     mTrackingState = mpTracker->mState;
     mTrackedMapPoints = mpTracker->mCurrentFrame.mvpMapPoints;
     mTrackedKeyPointsUn = mpTracker->mCurrentFrame.mvKeysUn;
 
-    HPose camPose;
-    // Conversion from ORB to WORLD right-handed reference frame
-    if (!_Tcw.empty()) {
-      cv::Mat Rwc = _Tcw.rowRange(0, 3).colRange(0, 3).t();
-      cv::Mat Twc = -Rwc * _Tcw.rowRange(0, 3).col(3);
-
-      Eigen::Matrix3f orMat;
-      orMat(0,0) = Rwc.at<float>(0,0);
-      orMat(0,1) = Rwc.at<float>(0,1);
-      orMat(0,2) = Rwc.at<float>(0,2);
-      orMat(1,0) = Rwc.at<float>(1,0);
-      orMat(1,1) = Rwc.at<float>(1,1);
-      orMat(1,2) = Rwc.at<float>(1,2);
-      orMat(2,0) = Rwc.at<float>(2,0);
-      orMat(2,1) = Rwc.at<float>(2,1);
-      orMat(2,2) = Rwc.at<float>(2,2);
-      Eigen::Quaternionf q_orb_tmp(orMat);
-      Eigen::Quaternionf _q_orb(q_orb_tmp.w(), -q_orb_tmp.z(), -q_orb_tmp.x(), -q_orb_tmp.y());
-
-      cv::Vec3f p_orb(Twc.at<float>(2), -Twc.at<float>(0), -Twc.at<float>(1));
-      cv::Vec4f q_orb(_q_orb.w(), -_q_orb.x(), _q_orb.y(), _q_orb.z());
-
-      camPose.SetPosition(p_orb);
-      camPose.SetRotation(q_orb);
-    }
-
-    return camPose;
+    return pose;
 }
 
-cv::Mat System::TrackMonocular(const cv::Mat &im, const double &timestamp)
+HPose System::TrackMonocular(const cv::Mat &im, const double &timestamp)
 {
     if(mSensor != MONOCULAR)
     {
@@ -365,13 +346,15 @@ cv::Mat System::TrackMonocular(const cv::Mat &im, const double &timestamp)
     }
 
     cv::Mat Tcw = mpTracker->GrabImageMonocular(im, timestamp);
+    HPose pose{};
+    pose_mat_to_hpose(Tcw, pose);
 
     unique_lock<mutex> lock2(mMutexState);
     mTrackingState = mpTracker->mState;
     mTrackedMapPoints = mpTracker->mCurrentFrame.mvpMapPoints;
     mTrackedKeyPointsUn = mpTracker->mCurrentFrame.mvKeysUn;
 
-    return Tcw;
+    return pose;
 }
 
 void System::ActivateLocalizationMode()
@@ -876,6 +859,34 @@ bool System::LoadMap(const string &filename)
 HPose& System::GetCurrentCameraPose()
 {
     return mCurrCameraPose;
+}
+
+// Handles conversion from ORB to NWU right-handed reference frame
+void pose_mat_to_hpose(const cv::Mat & mat, HPose & pose)
+{
+  if (!mat.empty()) {
+    cv::Mat Rwc = mat.rowRange(0, 3).colRange(0, 3).t();
+    cv::Mat Twc = -Rwc * mat.rowRange(0, 3).col(3);
+
+    Eigen::Matrix3f orMat;
+    orMat(0,0) = Rwc.at<float>(0,0);
+    orMat(0,1) = Rwc.at<float>(0,1);
+    orMat(0,2) = Rwc.at<float>(0,2);
+    orMat(1,0) = Rwc.at<float>(1,0);
+    orMat(1,1) = Rwc.at<float>(1,1);
+    orMat(1,2) = Rwc.at<float>(1,2);
+    orMat(2,0) = Rwc.at<float>(2,0);
+    orMat(2,1) = Rwc.at<float>(2,1);
+    orMat(2,2) = Rwc.at<float>(2,2);
+    Eigen::Quaternionf q_orb_tmp(orMat);
+    Eigen::Quaternionf _q_orb(q_orb_tmp.w(), -q_orb_tmp.z(), -q_orb_tmp.x(), -q_orb_tmp.y());
+
+    cv::Vec3f p_orb(Twc.at<float>(2), -Twc.at<float>(0), -Twc.at<float>(1));
+    cv::Vec4f q_orb(_q_orb.w(), -_q_orb.x(), _q_orb.y(), _q_orb.z());
+
+    pose.SetPosition(p_orb);
+    pose.SetRotation(q_orb);
+  }
 }
 
 } //namespace ORB_SLAM

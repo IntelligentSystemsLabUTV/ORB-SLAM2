@@ -74,13 +74,13 @@ public:
     // Proccess the given stereo frame. Images must be synchronized and rectified.
     // Input images: RGB (CV_8UC3) or grayscale (CV_8U). RGB is converted to grayscale.
     // Returns the camera pose (empty if tracking fails).
-    cv::Mat TrackStereo(const cv::Mat &imLeft, const cv::Mat &imRight, const double &timestamp);
+    HPose TrackStereo(const cv::Mat &imLeft, const cv::Mat &imRight, const double &timestamp);
 
     // Process the given rgbd frame. Depthmap must be registered to the RGB frame.
     // Input image: RGB (CV_8UC3) or grayscale (CV_8U). RGB is converted to grayscale.
     // Input depthmap: Float (CV_32F).
     // Returns the camera pose (empty if tracking fails).
-    cv::Mat TrackRGBD(const cv::Mat &im, const cv::Mat &depthmap, const double &timestamp);
+    HPose TrackRGBD(const cv::Mat &im, const cv::Mat &depthmap, const double &timestamp);
 
     // Process the given rgbd frame. Depthmap must be registered to the RGB frame. Overloaded to return camera pose
     // referenced to world reference frame.
@@ -92,7 +92,7 @@ public:
     // Proccess the given monocular frame
     // Input images: RGB (CV_8UC3) or grayscale (CV_8U). RGB is converted to grayscale.
     // Returns the camera pose (empty if tracking fails).
-    cv::Mat TrackMonocular(const cv::Mat &im, const double &timestamp);
+    HPose TrackMonocular(const cv::Mat &im, const double &timestamp);
 
     // This stops local mapping thread (map building) and performs only camera tracking.
     void ActivateLocalizationMode();
@@ -136,7 +136,7 @@ public:
     void SaveKeyFrameTrajectory(const string &filename);
 
     // Information from most recent processed frame
-    // You can call this right after TrackMonocular (or stereo or RGBD)
+    // You can call this right after Track functions
     int GetTrackingState();
     std::vector<MapPoint*> GetTrackedMapPoints();
     std::vector<cv::KeyPoint> GetTrackedKeyPointsUn();
@@ -152,6 +152,9 @@ private:
     // Save/Load functions
     void SaveMap(const string &filename);
     bool LoadMap(const string &filename);
+
+    // Utility functions
+    void pose_mat_to_hpose(const cv::Mat & mat, HPose & hpose);
 
 private:
 
