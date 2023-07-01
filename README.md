@@ -18,6 +18,14 @@ The scope of this version is of building a stable, reliable implementation that 
 - [`ORB-SLAM2`](src/ORB-SLAM2/README.md): an improved version of the original ORB-SLAM2 implementation, configured to build and run entirely inside a ROS 2 workspace, in a containerized environment.
 - [`orbslam2_driver`](src/orbslam2_driver/README.md): a ROS 2 driver for the ORB-SLAM2 system, that exposes the SLAM system as a ROS 2 node, supporting all of its configurations.
 
+### Thirdparty dependencies
+
+The following thirdparty dependencies are required to build the project, and included as ROS 2 packages in the `src/thirdparty` directory:
+
+- [`fbow`](src/thirdparty/fbow/README.md): a C++ implementation of the Fast Bag-of-Words algorithm, based on the original DBoW2 implementation.
+- `g2o`: a C++ framework for graph optimization.
+- `dlib`: DUtils library.
+
 ## Supported targets
 
 Based on the DUA specification, this project supports the following targets:
