@@ -177,6 +177,7 @@ private:
   /* Auxiliary routines. */
   void init_orbslam2();
   void fini_orbslam2();
+  cv::Mat image_to_cv_mat(const Image::ConstSharedPtr & msg);
   PoseKit::Pose hpose_to_pose(
     const ORB_SLAM2::HPose & hpose,
     std::string && frame_id,

@@ -82,7 +82,7 @@ public:
     // Returns the camera pose (empty if tracking fails).
     HPose TrackRGBD(const cv::Mat &im, const cv::Mat &depthmap, const double &timestamp);
 
-    // Process the given rgbd frame. Depthmap must be registered to the RGB frame. Overloaded to return camera pose
+    // Process the given ird frame. Depthmap must be registered to the IR frame.
     // referenced to world reference frame.
     // Input image: IR (CV_8UC3) or grayscale (CV_8U).
     // Input depthmap: Float (CV_32F).

@@ -13,6 +13,40 @@ namespace ORB_SLAM2Driver
 {
 
 /**
+ * @brief Stops the ORB-SLAM2 thread and system.
+ */
+void ORB_SLAM2DriverNode::fini_orbslam2()
+{
+  running_.store(false, std::memory_order_release);
+
+  stereo_sync_.reset();
+  camera_1_sub_.reset();
+  camera_2_sub_.reset();
+
+  orb2_thread_.join();
+  orb2_.reset();
+
+  RCLCPP_WARN(this->get_logger(), "ORB-SLAM2 thread stopped");
+}
+
+/**
+ * @brief Converts an Image message to a cv::Mat.
+ *
+ * @param msg The Image message to convert.
+ * @return The converted cv::Mat.
+ */
+cv::Mat image_to_cv_mat(const Image::ConstSharedPtr & msg)
+{
+  cv::Mat new_frame(
+    msg->height,
+    msg->width,
+    CV_8UC3,
+    (void *)(msg->data.data()));
+
+  return new_frame;
+}
+
+/**
  * @brief Converts an HPose to a PoseKit::Pose.
  *
  * @param hpose The HPose to convert.
@@ -75,7 +109,7 @@ bool ORB_SLAM2DriverNode::validate_mode(const rclcpp::Parameter & p)
   } else if (mode_str == "RGBD") {
     mode_ = ORB_SLAM2::System::eSensor::RGBD;
   } else if (mode_str == "IRD") {
-    mode_ = ORB_SLAM2::System::eSensor::IRD;
+    mode_ = ORB_SLAM2::System::eSensor::RGBD;
   } else {
     RCLCPP_ERROR(
       this->get_logger(),

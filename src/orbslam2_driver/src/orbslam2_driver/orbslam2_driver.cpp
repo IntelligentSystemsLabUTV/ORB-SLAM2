@@ -43,8 +43,6 @@ ORB_SLAM2DriverNode::~ORB_SLAM2DriverNode()
     running_.store(false, std::memory_order_release);
   }
 
-  camera_1_sub_->unsubscribe();
-  camera_2_sub_->unsubscribe();
   stereo_sync_.reset();
   camera_1_sub_.reset();
   camera_2_sub_.reset();
