@@ -43,6 +43,14 @@ params:
     read_only: false
     var_name: display_
 
+  frame_view:
+    type: bool
+    default_value: false
+    description: "Activates the FrameViewer module publisher."
+    constraints: "Changes require system restart."
+    read_only: false
+    var_name: frame_view_
+
   link_namespace:
     type: string
     default_value: ""
@@ -85,7 +93,7 @@ params:
 
   vocabulary_path:
     type: string
-    default_value: ""
+    default_value: "/home/neo/workspace/src/ORB-SLAM2/Vocabulary/orb_mur.fbow"
     description: "Path to the ORB vocabulary file."
     constraints: "Changes require system restart."
     read_only: false

@@ -98,7 +98,6 @@ private:
   void init_publishers();
   void init_services();
   void init_tf_listeners();
-  void init_subscriptions();
 
   /* TF listeners, timer, and related data. */
   std::string map_frame_;
@@ -147,6 +146,7 @@ private:
   std::string camera_topic_1_;
   std::string camera_topic_2_;
   bool display_;
+  bool frame_view_;
   std::string link_namespace_;
   ORB_SLAM2::System::eSensor mode_ = ORB_SLAM2::System::eSensor::STEREO;
   std::string orb2_config_path_;
@@ -171,7 +171,7 @@ private:
   PoseKit::Pose init_pose_{};
   std::mutex init_pose_lock_;
 
-  /* ORB-SLAM2 data. */
+  /* ORB-SLAM2 system data. */
   std::shared_ptr<ORB_SLAM2::System> orb2_ = nullptr;
 
   /* Auxiliary routines. */

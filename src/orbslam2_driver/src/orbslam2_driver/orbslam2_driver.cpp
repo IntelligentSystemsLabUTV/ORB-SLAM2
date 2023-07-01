@@ -13,6 +13,47 @@ namespace ORB_SLAM2Driver
 {
 
 /**
+ * @brief Node constructor.
+ */
+ORB_SLAM2DriverNode::ORB_SLAM2DriverNode(const rclcpp::NodeOptions & opts)
+: NodeBase("orbslam2_driver", opts, true)
+{
+  init_atomics();
+  init_sync_primitives();
+  init_parameters();
+  init_publishers();
+  init_services();
+  init_tf_listeners();
+
+  if (autostart_) {
+    init_orbslam2();
+    running_.store(true, std::memory_order_release);
+  }
+
+  RCLCPP_INFO(this->get_logger(), "Node initialized");
+}
+
+/**
+ * @brief Node destructor.
+ */
+ORB_SLAM2DriverNode::~ORB_SLAM2DriverNode()
+{
+  if (running_.load(std::memory_order_acquire)) {
+    fini_orbslam2();
+    running_.store(false, std::memory_order_release);
+  }
+
+  camera_1_sub_->unsubscribe();
+  camera_2_sub_->unsubscribe();
+  stereo_sync_.reset();
+  camera_1_sub_.reset();
+  camera_2_sub_.reset();
+
+  sem_destroy(&orb2_thread_sem_1_);
+  sem_destroy(&orb2_thread_sem_2_);
+}
+
+/**
  * @brief Routine to initialize atomic members.
  */
 void ORB_SLAM2DriverNode::init_atomics()
@@ -34,6 +75,37 @@ void ORB_SLAM2DriverNode::init_sync_primitives()
     throw std::runtime_error(
             "ORB_SLAM2DriverNode::init_sync_primitives: Failed to initialize semaphores.");
   }
+}
+
+/**
+ * @brief Routine to initialize publishers.
+ */
+void ORB_SLAM2DriverNode::init_publishers()
+{
+  // pose
+  pose_pub_ = this->create_publisher<PoseWithCovarianceStamped>(
+    "~/pose",
+    DUAQoS::get_datum_qos());
+
+  // rviz/pose
+  rviz_pose_pub_ = this->create_publisher<PoseWithCovarianceStamped>(
+    "~/rviz/pose",
+    DUAQoS::Visualization::get_datum_qos());
+}
+
+/**
+ * @brief Routine to initialize services.
+ */
+void ORB_SLAM2DriverNode::init_services()
+{
+  // enable
+  enable_srv_ = this->create_service<SetBool>(
+    "~/enable",
+    std::bind(
+      &ORB_SLAM2DriverNode::enable_callback,
+      this,
+      std::placeholders::_1,
+      std::placeholders::_2));
 }
 
 /**
