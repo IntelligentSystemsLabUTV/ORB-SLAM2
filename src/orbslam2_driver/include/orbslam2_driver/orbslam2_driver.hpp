@@ -150,11 +150,13 @@ private:
   std::string link_namespace_;
   ORB_SLAM2::System::eSensor mode_ = ORB_SLAM2::System::eSensor::STEREO;
   std::string orb2_config_path_;
+  std::string transport_;
   std::string vocabulary_path_;
   bool verbose_;
 
   /* Node parameters validators. */
   bool validate_mode(const rclcpp::Parameter & p);
+  bool validate_transport(const rclcpp::Parameter & p);
 
   /* Worker thread, routine, and data. */
   std::thread orb2_thread_;

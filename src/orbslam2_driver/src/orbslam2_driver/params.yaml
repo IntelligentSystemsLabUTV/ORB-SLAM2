@@ -67,6 +67,14 @@ params:
     read_only: false
     var_name: orb2_config_path_
 
+  transport:
+    type: string
+    default_value: "raw"
+    description: "ROS image transport type, either raw or compressed."
+    constraints: "Changes require system restart."
+    read_only: false
+    validator: validate_transport
+
   verbose:
     type: bool
     default_value: false

@@ -58,4 +58,56 @@ PoseKit::Pose hpose_to_pose(
   return PoseKit::Pose(p, q, header, cov_array);
 }
 
+/**
+ * @brief Validates the mode parameter.
+ *
+ * @param p The parameter to validate.
+ * @return True if the parameter is valid, false otherwise.
+ */
+bool ORB_SLAM2DriverNode::validate_mode(const rclcpp::Parameter & p)
+{
+  std::string mode_str = p.as_string();
+
+  if (mode_str == "MONOCULAR") {
+    mode_ = ORB_SLAM2::System::eSensor::MONOCULAR;
+  } else if (mode_str == "STEREO") {
+    mode_ = ORB_SLAM2::System::eSensor::STEREO;
+  } else if (mode_str == "RGBD") {
+    mode_ = ORB_SLAM2::System::eSensor::RGBD;
+  } else if (mode_str == "IRD") {
+    mode_ = ORB_SLAM2::System::eSensor::IRD;
+  } else {
+    RCLCPP_ERROR(
+      this->get_logger(),
+      "ORB_SLAM2DriverNode::validate_mode: Invalid mode '%s'",
+      mode_str.c_str());
+    return false;
+  }
+
+  return true;
+}
+
+/**
+ * @brief Validates the transport parameter.
+ *
+ * @param p The parameter to validate.
+ * @return True if the parameter is valid, false otherwise.
+ */
+bool ORB_SLAM2DriverNode::validate_transport(const rclcpp::Parameter & p)
+{
+  std::string transport_str = p.as_string();
+
+  if (transport_str == "raw" || transport_str == "compressed") {
+    transport_ = transport_str;
+  } else {
+    RCLCPP_ERROR(
+      this->get_logger(),
+      "ORB_SLAM2DriverNode::validate_transport: Invalid transport '%s'",
+      transport_str.c_str());
+    return false;
+  }
+
+  return true;
+}
+
 } // namespace ORB_SLAM2Driver
