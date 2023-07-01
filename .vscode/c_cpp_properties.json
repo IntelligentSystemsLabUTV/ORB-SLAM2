@@ -14,6 +14,10 @@
         "/opt/ros/dua-utils/install/**",
         // Add subdirectories of install here to include interfaces,
         // headers, plugin base headers and everything else you need
+        "${workspaceFolder}/install/orbslam2/include/*",
+        "${workspaceFolder}/install/fbow/include/*",
+        "${workspaceFolder}/install/g2o/include/*",
+        "${workspaceFolder}/install/dlib/include/*",
         "/usr/local/**",
         "/usr/local/include"
       ],
