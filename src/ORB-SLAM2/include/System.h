@@ -143,7 +143,7 @@ public:
 
     HPose& GetCurrentCameraPose();
 
-    cv::Mat GetCurrentCovarianceMatrix(float, float, cv::Mat, bool);
+    cv::Mat GetCurrentCovarianceMatrix(float, float, HPose, bool);
 
     // Returns the currently stored map: each column is a 3D-point coordinates vector
     std::vector<Eigen::Vector3f> GetMap(bool wait_gba = false);
@@ -155,6 +155,9 @@ private:
 
     // Converts an OpenCV isometry matrix to an HPose
     void pose_mat_to_hpose(const cv::Mat & mat, HPose & hpose);
+
+    // Converts an HPose to an OpenCV isometry matrix
+    void hpose_to_pose_mat(const HPose & hpose, cv::Mat & mat);
 
 private:
 

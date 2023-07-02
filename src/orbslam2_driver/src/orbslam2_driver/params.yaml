@@ -11,6 +11,28 @@ params:
     read_only: true
     var_name: autostart_
 
+  camera_fx:
+    type: double
+    default_value: 1.0
+    min_value: 0.0
+    max_value: 1000000.0
+    step: 0.0
+    description: "Camera fx value."
+    constraints: "Changes require system restart."
+    read_only: false
+    var_name: camera_fx_
+
+  camera_fy:
+    type: double
+    default_value: 1.0
+    min_value: 0.0
+    max_value: 1000000.0
+    step: 0.0
+    description: "Camera fy value."
+    constraints: "Changes require system restart."
+    read_only: false
+    var_name: camera_fy_
+
   camera_orientation_topic:
     type: string
     default_value: "/camera/orientation"

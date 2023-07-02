@@ -47,11 +47,16 @@ void ORB_SLAM2DriverNode::orb2_thread_routine()
       PoseKit::Pose orb2_pose{};
       if (mode_str_ == "STEREO") {
         ORB_SLAM2::HPose orb2_hpose = orb2_->TrackStereo(frame_1, frame_2, frame_ts);
-        // TODO Covariance
+        cv::Mat cov_mat = orb2_->GetCurrentCovarianceMatrix(
+          camera_fx_,
+          camera_fy_,
+          orb2_hpose,
+          true);
         orb2_pose = hpose_to_pose(
           orb2_hpose,
           link_namespace_ + "orb2_link",
-          frame_ts_ros);
+          frame_ts_ros,
+          cov_mat);
       } else {
         // Should never happen
         RCLCPP_FATAL(

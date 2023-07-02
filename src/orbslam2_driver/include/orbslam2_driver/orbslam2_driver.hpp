@@ -148,6 +148,8 @@ private:
 
   /* Node parameters. */
   bool autostart_;
+  double camera_fx_;
+  double camera_fy_;
   std::string camera_orientation_topic_;
   std::string camera_topic_1_;
   std::string camera_topic_2_;

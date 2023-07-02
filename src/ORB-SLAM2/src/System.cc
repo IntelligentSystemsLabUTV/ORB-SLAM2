@@ -686,7 +686,7 @@ vector<cv::KeyPoint> System::GetTrackedKeyPointsUn()
 // Computing covariance matrix for VSLAM pose as per
 // Appendix F in "Asynchronous Multi-Sensor Fusion for 3D
 // Mapping and Localization", P. Geneva, K. Eckenhoff, G. Huang
-cv::Mat System::GetCurrentCovarianceMatrix(float fx, float fy, cv::Mat cameraPose, bool rotationInverse)
+cv::Mat System::GetCurrentCovarianceMatrix(float fx, float fy, HPose pose, bool rotationInverse)
 {
   // Computing Visual odometry covariance matrix
   if (this->GetTrackingState() == Tracking::OK)
@@ -699,6 +699,9 @@ cv::Mat System::GetCurrentCovarianceMatrix(float fx, float fy, cv::Mat cameraPos
       if(pMP)
         featPos.push_back(pMP->GetWorldPos());
     }
+
+    cv::Mat cameraPose = cv::Mat::zeros(4, 4, CV_32F);
+    hpose_to_pose_mat(pose, cameraPose);
 
     cv::Mat lambda = cv::Mat::zeros(2,2,CV_32F);
     cv::Mat factor = cv::Mat::zeros(6,6,CV_32F);
@@ -764,11 +767,9 @@ cv::Mat System::GetCurrentCovarianceMatrix(float fx, float fy, cv::Mat cameraPos
       cv::Mat tmp = H1*H2;
       factor = factor + tmp.t() * lambda.inv() * tmp;
     }
-    return(factor.inv());
-  }
-  else
-  {
-    return(cv::Mat::eye(6,6,CV_32F));
+    return factor.inv();
+  } else {
+    return cv::Mat::eye(6, 6, CV_32F);
   }
 }
 
@@ -861,7 +862,7 @@ HPose& System::GetCurrentCameraPose()
     return mCurrCameraPose;
 }
 
-// Handles conversion from ORB to NWU right-handed reference frame
+// Converts an OpenCV isometry matrix to an HPose
 void System::pose_mat_to_hpose(const cv::Mat & mat, HPose & pose)
 {
   if (!mat.empty()) {
@@ -889,4 +890,32 @@ void System::pose_mat_to_hpose(const cv::Mat & mat, HPose & pose)
   }
 }
 
-} //namespace ORB_SLAM
+// Converts an HPose to an OpenCV isometry matrix
+void System::hpose_to_pose_mat(const HPose & hpose, cv::Mat & mat)
+{
+  Eigen::Vector3f hpose_p(
+    hpose.GetTranslation()(0),
+    hpose.GetTranslation()(1),
+    hpose.GetTranslation()(2));
+  Eigen::Quaternionf hpose_q(
+    hpose.GetRotation()(0),
+    hpose.GetRotation()(1),
+    hpose.GetRotation()(2),
+    hpose.GetRotation()(3));
+
+  Eigen::Isometry3f hpose_iso = Eigen::Isometry3f::Identity();
+  hpose_iso.rotate(hpose_q);
+  hpose_iso.pretranslate(hpose_p);
+
+  for (int i = 0; i < 3; i++) {
+    mat.at<float>(i, 3) = hpose_iso(i, 3);
+  }
+
+  for (int i = 0; i < 2; i++) {
+    for (int j = 0; j < 2; j++) {
+      mat.at<float>(i, j) = hpose_iso(i, j);
+    }
+  }
+}
+
+} // namespace ORB_SLAM2

@@ -1,6 +1,8 @@
 /orbslam2/orbslam2_driver:
   ros__parameters:
     autostart: false
+    camera_fx: 363.011016845
+    camera_fy: 363.011016845
     camera_orientation_topic: /zed/zed_mini_driver/imu
     camera_topic_1: /zed/zed_mini_driver/left/image_rect_color
     camera_topic_2: /zed/zed_mini_driver/right/image_rect_color
