@@ -1,32 +1,32 @@
 %YAML:1.0
 
 #--------------------------------------------------------------------------------------------
-# Camera Parameters for Zed M.
+# Camera Parameters for ZED Mini
 #--------------------------------------------------------------------------------------------
 
 # Camera calibration and distortion parameters (OpenCV)
-Camera.fx: 673.460571289
-Camera.fy: 673.460571289
+Camera.fx: 363.011016845
+Camera.fy: 363.011016845
 
-Camera.cx: 620.319274902
-Camera.cy: 361.416381836
+Camera.cx: 329.776489257
+Camera.cy: 192.161117553
 
 Camera.k1: 0.0
 Camera.k2: 0.0
 Camera.p1: 0.0
 Camera.p2: 0.0
 
-Camera.width: 1280
-Camera.height: 720
+Camera.width: 672
+Camera.height: 376
 
 # Camera frames per second
-Camera.fps: 30.0
+Camera.fps: 20.0
 
 # stereo baseline times fx (baseline = 6.2968746 cm) => Camera.fx * 0.062968746
 Camera.bf: 42.406967654511933594
 
-# Color order of the images (0: BGR, 1: RGB. It is ignored if images are grayscale)
-Camera.RGB: 1
+# Color order of the images (0: BGR, 1: RGB, ignored if images are grayscale)
+Camera.RGB: 0
 
 # Close/Far threshold. Baseline times.
 ThDepth: 35
@@ -36,7 +36,7 @@ ThDepth: 35
 #--------------------------------------------------------------------------------------------
 
 # ORB Extractor: Number of features per image
-ORBextractor.nFeatures: 1500
+ORBextractor.nFeatures: 1200
 
 # ORB Extractor: Scale factor between levels in the scale pyramid
 ORBextractor.scaleFactor: 1.2

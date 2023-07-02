@@ -1,0 +1,16 @@
+/orbslam2/orbslam2_driver:
+  ros__parameters:
+    autostart: false
+    camera_orientation_topic: /zed/zed_mini_driver/imu
+    camera_topic_1: /zed/zed_mini_driver/left/image_rect_color
+    camera_topic_2: /zed/zed_mini_driver/right/image_rect_color
+    display: false
+    frame_view: false
+    link_namespace: ''
+    mode: STEREO
+    orb2_config_path: /home/neo/workspace/src/orbslam2_driver/config/ZEDMini_Stereo_VGA.yaml
+    tracking_cpu: 2
+    transport: raw
+    use_sim_time: false
+    verbose: false
+    vocabulary_path: /home/neo/workspace/src/ORB-SLAM2/Vocabulary/orb_mur.fbow

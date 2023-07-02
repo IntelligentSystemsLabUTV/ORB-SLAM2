@@ -5,7 +5,7 @@ node_class_name: ORB_SLAM2DriverNode
 params:
   autostart:
     type: bool
-    default_value: true
+    default_value: false
     description: "Activates system automatically at node startup."
     constraints: "Cannot be changed."
     read_only: true
