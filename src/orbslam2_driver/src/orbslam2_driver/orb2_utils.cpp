@@ -13,6 +13,90 @@ namespace ORB_SLAM2Driver
 {
 
 /**
+ * @brief Initializes the ORB-SLAM2 system instance.
+ *
+ * @return True if initialization succeeded, false otherwise.
+ *
+ * @throws RuntimeError if something fails.
+ */
+bool ORB_SLAM2DriverNode::init_orbslam2()
+{
+  // Subscribe to camera orientation topic
+  camera_imu_sub_ = this->create_subscription<Imu>(
+    camera_orientation_topic_,
+    DUAQoS::get_datum_qos(),
+    std::bind(
+      &ORB_SLAM2DriverNode::camera_imu_callback,
+      this,
+      std::placeholders::_1));
+
+  // Initialize synchronization primitives
+  if (sem_init(&orb2_thread_sem_1_, 0, 1) ||
+    sem_init(&orb2_thread_sem_2_, 0, 0))
+  {
+    char err_msg_buf[100] = {};
+    char * err_msg = strerror_r(errno, err_msg_buf, 100);
+    throw std::runtime_error(
+            "ORB_SLAM2DriverNode::init_orbslam2: Failed to initialize semaphores: " +
+            std::string(err_msg));
+  }
+
+  // Subscribe to camera topics
+  if (mode_str_ == "STEREO") {
+    camera_1_sub_ = std::make_shared<image_transport::SubscriberFilter>();
+    camera_2_sub_ = std::make_shared<image_transport::SubscriberFilter>();
+
+    camera_1_sub_->subscribe(
+      this,
+      camera_topic_1_,
+      transport_,
+      DUAQoS::get_image_qos().get_rmw_qos_profile());
+    camera_2_sub_->subscribe(
+      this,
+      camera_topic_2_,
+      transport_,
+      DUAQoS::get_image_qos().get_rmw_qos_profile());
+
+    stereo_sync_ = std::make_shared<ImageSynchronizer>(
+      ImageSyncPolicy(4),
+      *camera_1_sub_,
+      *camera_2_sub_);
+    stereo_sync_->registerCallback(
+      std::bind(
+        &ORB_SLAM2DriverNode::stereo_callback,
+        this,
+        std::placeholders::_1,
+        std::placeholders::_2));
+  } else {
+    RCLCPP_ERROR(
+      this->get_logger(),
+      "ORB_SLAM2DriverNode::init_orbslam2: Invalid system mode stored: '%s'",
+      mode_str_);
+    return false;
+  }
+
+  // Spawn tracking thread
+  running_.store(true, std::memory_order_release);
+  cpu_set_t tracking_cpu_set;
+  CPU_ZERO(&tracking_cpu_set);
+  CPU_SET(tracking_cpu_, &tracking_cpu_set);
+  orb2_thread_ = std::thread(
+    &ORB_SLAM2DriverNode::orb2_thread_routine,
+    this);
+  if (pthread_setaffinity_np(orb2_thread_.native_handle(), sizeof(cpu_set_t), &tracking_cpu_set)) {
+    char err_msg_buf[100] = {};
+    char * err_msg = strerror_r(errno, err_msg_buf, 100);
+    throw std::runtime_error(
+            "ORB_SLAM2DriverNode::init_orbslam2: Failed to configure tracking thread: " +
+            std::string(err_msg));
+  }
+
+  RCLCPP_WARN(this->get_logger(), "ORB-SLAM2 thread started");
+
+  return true;
+}
+
+/**
  * @brief Stops the ORB-SLAM2 thread and system.
  */
 void ORB_SLAM2DriverNode::fini_orbslam2()
@@ -22,9 +106,13 @@ void ORB_SLAM2DriverNode::fini_orbslam2()
   stereo_sync_.reset();
   camera_1_sub_.reset();
   camera_2_sub_.reset();
+  camera_imu_sub_.reset();
 
   orb2_thread_.join();
   orb2_.reset();
+
+  sem_destroy(&orb2_thread_sem_1_);
+  sem_destroy(&orb2_thread_sem_2_);
 
   RCLCPP_WARN(this->get_logger(), "ORB-SLAM2 thread stopped");
 }
@@ -118,6 +206,7 @@ bool ORB_SLAM2DriverNode::validate_mode(const rclcpp::Parameter & p)
     return false;
   }
 
+  mode_str_ = mode_str;
   return true;
 }
 

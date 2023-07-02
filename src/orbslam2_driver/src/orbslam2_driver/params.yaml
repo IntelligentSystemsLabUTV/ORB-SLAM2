@@ -75,6 +75,16 @@ params:
     read_only: false
     var_name: orb2_config_path_
 
+  tracking_cpu:
+    type: integer
+    default_value: 2
+    min_value: 0
+    max_value: 31
+    step: 1
+    description: "Tracking thread CPU."
+    constraints: "Changes require system restart."
+    var_name: tracking_cpu_;
+
   transport:
     type: string
     default_value: "raw"

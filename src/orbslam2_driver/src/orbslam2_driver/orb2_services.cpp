@@ -30,7 +30,13 @@ void ORB_SLAM2DriverNode::enable_callback(
         std::memory_order_release,
         std::memory_order_acquire))
     {
-      init_orbslam2();
+      if (init_orbslam2()) {
+        resp->set__success(true);
+        resp->set__message("");
+      } else {
+        resp->set__success(false);
+        resp->set__message("Failed to initialize ORB-SLAM2 system.");
+      }
     }
   } else {
     bool expected = true;
@@ -41,10 +47,10 @@ void ORB_SLAM2DriverNode::enable_callback(
         std::memory_order_acquire))
     {
       fini_orbslam2();
+      resp->set__success(true);
+      resp->set__message("");
     }
   }
-  resp->set__success(true);
-  resp->set__message("");
 }
 
 } // namespace ORB_SLAM2Driver

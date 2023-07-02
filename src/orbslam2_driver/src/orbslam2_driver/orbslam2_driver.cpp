@@ -19,7 +19,6 @@ ORB_SLAM2DriverNode::ORB_SLAM2DriverNode(const rclcpp::NodeOptions & opts)
 : NodeBase("orbslam2_driver", opts, true)
 {
   init_atomics();
-  init_sync_primitives();
   init_parameters();
   init_publishers();
   init_services();
@@ -27,7 +26,6 @@ ORB_SLAM2DriverNode::ORB_SLAM2DriverNode(const rclcpp::NodeOptions & opts)
 
   if (autostart_) {
     init_orbslam2();
-    running_.store(true, std::memory_order_release);
   }
 
   RCLCPP_INFO(this->get_logger(), "Node initialized");
@@ -46,9 +44,6 @@ ORB_SLAM2DriverNode::~ORB_SLAM2DriverNode()
   stereo_sync_.reset();
   camera_1_sub_.reset();
   camera_2_sub_.reset();
-
-  sem_destroy(&orb2_thread_sem_1_);
-  sem_destroy(&orb2_thread_sem_2_);
 }
 
 /**
@@ -57,22 +52,6 @@ ORB_SLAM2DriverNode::~ORB_SLAM2DriverNode()
 void ORB_SLAM2DriverNode::init_atomics()
 {
   running_.store(false, std::memory_order_release);
-}
-
-/**
- * @brief Routine to initialize synchronization primitives.
- *
- * @throws RuntimeError if some initialization fails.
- */
-void ORB_SLAM2DriverNode::init_sync_primitives()
-{
-  if (sem_init(&orb2_thread_sem_1_, 0, 1) ||
-    sem_init(&orb2_thread_sem_2_, 0, 0))
-  {
-    perror("sem_init");
-    throw std::runtime_error(
-            "ORB_SLAM2DriverNode::init_sync_primitives: Failed to initialize semaphores.");
-  }
 }
 
 /**

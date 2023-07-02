@@ -10,6 +10,8 @@
 #ifndef ORBSLAM2_DRIVER_HPP
 #define ORBSLAM2_DRIVER_HPP
 
+#define _GNU_SOURCE
+
 #include <atomic>
 #include <chrono>
 #include <cstdlib>
@@ -20,6 +22,7 @@
 #include <thread>
 #include <vector>
 
+#include <sched.h>
 #include <semaphore.h>
 #include <time.h>
 
@@ -93,7 +96,6 @@ public:
 private:
   /* Node initialization routines. */
   void init_atomics();
-  void init_sync_primitives();
   void init_parameters();
   void init_publishers();
   void init_services();
@@ -149,7 +151,9 @@ private:
   bool frame_view_;
   std::string link_namespace_;
   ORB_SLAM2::System::eSensor mode_ = ORB_SLAM2::System::eSensor::STEREO;
+  std::string mode_str_;
   std::string orb2_config_path_;
+  int64_t tracking_cpu_;
   std::string transport_;
   std::string vocabulary_path_;
   bool verbose_;
@@ -175,7 +179,7 @@ private:
   std::shared_ptr<ORB_SLAM2::System> orb2_ = nullptr;
 
   /* Auxiliary routines. */
-  void init_orbslam2();
+  bool init_orbslam2();
   void fini_orbslam2();
   cv::Mat image_to_cv_mat(const Image::ConstSharedPtr & msg);
   PoseKit::Pose hpose_to_pose(
