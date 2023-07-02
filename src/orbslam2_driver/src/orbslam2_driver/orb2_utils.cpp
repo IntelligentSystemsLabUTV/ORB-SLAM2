@@ -71,7 +71,7 @@ bool ORB_SLAM2DriverNode::init_orbslam2()
     RCLCPP_ERROR(
       this->get_logger(),
       "ORB_SLAM2DriverNode::init_orbslam2: Invalid system mode stored: '%s'",
-      mode_str_);
+      mode_str_.c_str());
     return false;
   }
 
@@ -133,7 +133,7 @@ void ORB_SLAM2DriverNode::fini_orbslam2()
  * @param msg The Image message to convert.
  * @return The converted cv::Mat.
  */
-cv::Mat image_to_cv_mat(const Image::ConstSharedPtr & msg)
+cv::Mat ORB_SLAM2DriverNode::image_to_cv_mat(const Image::ConstSharedPtr & msg)
 {
   cv::Mat new_frame(
     msg->height,
@@ -156,7 +156,7 @@ cv::Mat image_to_cv_mat(const Image::ConstSharedPtr & msg)
  *
  * @throws RuntimeError if the covariance matrix is not 6x6.
  */
-PoseKit::Pose hpose_to_pose(
+PoseKit::Pose ORB_SLAM2DriverNode::hpose_to_pose(
   const ORB_SLAM2::HPose & hpose,
   std::string && frame_id,
   const Time & ts,

@@ -862,7 +862,7 @@ HPose& System::GetCurrentCameraPose()
 }
 
 // Handles conversion from ORB to NWU right-handed reference frame
-void pose_mat_to_hpose(const cv::Mat & mat, HPose & pose)
+void System::pose_mat_to_hpose(const cv::Mat & mat, HPose & pose)
 {
   if (!mat.empty()) {
     cv::Mat Rwc = mat.rowRange(0, 3).colRange(0, 3).t();

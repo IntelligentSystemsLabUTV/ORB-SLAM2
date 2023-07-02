@@ -21,6 +21,14 @@ namespace ORB_SLAM2Driver
  */
 void ORB_SLAM2DriverNode::camera_imu_callback(const Imu::SharedPtr msg)
 {
+  // Check if orientation info is valid
+  if (msg->orientation_covariance[0] == -1.0) {
+    RCLCPP_ERROR(
+      this->get_logger(),
+      "ORB_SLAM2DriverNode::camera_imu_callback: Invalid orientation");
+    return;
+  }
+
   Eigen::Quaterniond init_q(
     msg->orientation.w,
     msg->orientation.x,
@@ -74,6 +82,7 @@ void ORB_SLAM2DriverNode::stereo_callback(
   if (sem_timedwait(&orb2_thread_sem_1_, &timeout) == 0) {
     camera_1_frame_ = image_to_cv_mat(camera_1_msg);
     camera_2_frame_ = image_to_cv_mat(camera_2_msg);
+    frame_ts_ = camera_1_msg->header.stamp;
     sem_post(&orb2_thread_sem_2_);
   } else {
     RCLCPP_ERROR(

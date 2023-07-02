@@ -69,7 +69,7 @@ params:
 
   orb2_config_path:
     type: string
-    default_value: ""
+    default_value: "/home/neo/workspace/src/ORB-SLAM2/Config/Zed-M-Stereo.yaml"
     description: "Path to the ORB-SLAM2 configuration file."
     constraints: "Changes require system restart."
     read_only: false
@@ -83,7 +83,8 @@ params:
     step: 1
     description: "Tracking thread CPU."
     constraints: "Changes require system restart."
-    var_name: tracking_cpu_;
+    read_only: false
+    var_name: tracking_cpu_
 
   transport:
     type: string

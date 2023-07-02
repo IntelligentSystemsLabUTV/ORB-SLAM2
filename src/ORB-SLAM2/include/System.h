@@ -153,7 +153,7 @@ private:
     void SaveMap(const string &filename);
     bool LoadMap(const string &filename);
 
-    // Utility functions
+    // Converts an OpenCV isometry matrix to an HPose
     void pose_mat_to_hpose(const cv::Mat & mat, HPose & hpose);
 
 private:

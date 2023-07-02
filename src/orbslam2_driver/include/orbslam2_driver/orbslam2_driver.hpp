@@ -10,7 +10,9 @@
 #ifndef ORBSLAM2_DRIVER_HPP
 #define ORBSLAM2_DRIVER_HPP
 
+#ifndef _GNU_SOURCE
 #define _GNU_SOURCE
+#endif
 
 #include <atomic>
 #include <chrono>
@@ -121,8 +123,10 @@ private:
   void camera_imu_callback(const Imu::SharedPtr msg);
 
   /* Topic publishers. */
+  rclcpp::Publisher<PoseWithCovarianceStamped>::SharedPtr base_link_pose_pub_;
   rclcpp::Publisher<PoseWithCovarianceStamped>::SharedPtr pose_pub_;
   rclcpp::Publisher<PoseWithCovarianceStamped>::SharedPtr rviz_pose_pub_;
+  rclcpp::Publisher<PoseWithCovarianceStamped>::SharedPtr rviz_base_link_pose_pub_;
 
   /* Service servers. */
   rclcpp::Service<SetBool>::SharedPtr enable_srv_;
@@ -169,6 +173,7 @@ private:
   sem_t orb2_thread_sem_2_;
   cv::Mat camera_1_frame_;
   cv::Mat camera_2_frame_;
+  Time frame_ts_;
 
   /* Internal state variables. */
   std::atomic<bool> running_;
