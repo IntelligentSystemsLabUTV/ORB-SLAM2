@@ -48,4 +48,38 @@ void ORB_SLAM2DriverNode::camera_imu_callback(const Imu::SharedPtr msg)
   camera_imu_sub_.reset();
 }
 
+/**
+ * @brief Gets two stereoscopic frames and forwards them to the ORB-SLAM2 thread.
+ *
+ * @param camera_1_msg Camera 1 frame.
+ * @param camera_2_msg Camera 2 frame.
+ *
+ * @throws RuntimeError if system time cannot be retrieved.
+ */
+void ORB_SLAM2DriverNode::stereo_callback(
+  const Image::ConstSharedPtr & camera_1_msg,
+  const Image::ConstSharedPtr & camera_2_msg)
+{
+  struct timespec timeout;
+  if (clock_gettime(CLOCK_REALTIME, &timeout) == -1) {
+    RCLCPP_FATAL(
+      this->get_logger(),
+      "ORB_SLAM2DriverNode::stereo_callback: clock_gettime failed");
+    throw std::runtime_error(
+            "ORB_SLAM2DriverNode::stereo_callback: clock_gettime failed");
+  }
+  timeout.tv_sec += 1;
+
+  // Try to forward new frames to the tracking thread
+  if (sem_timedwait(&orb2_thread_sem_1_, &timeout) == 0) {
+    camera_1_frame_ = image_to_cv_mat(camera_1_msg);
+    camera_2_frame_ = image_to_cv_mat(camera_2_msg);
+    sem_post(&orb2_thread_sem_2_);
+  } else {
+    RCLCPP_ERROR(
+      this->get_logger(),
+      "ORB_SLAM2DriverNode::stereo_callback: Tracking thread busy, missed frames");
+  }
+}
+
 } // namespace ORB_SLAM2Driver
