@@ -75,6 +75,15 @@ bool ORB_SLAM2DriverNode::init_orbslam2()
     return false;
   }
 
+  // Initialize ORB-SLAM2 system
+  orb2_ = std::make_shared<ORB_SLAM2::System>(
+    vocabulary_path_,
+    orb2_config_path_,
+    mode_,
+    display_,
+    false,
+    false);
+
   // Spawn tracking thread
   running_.store(true, std::memory_order_release);
   cpu_set_t tracking_cpu_set;
@@ -109,6 +118,7 @@ void ORB_SLAM2DriverNode::fini_orbslam2()
   camera_imu_sub_.reset();
 
   orb2_thread_.join();
+  orb2_->Shutdown();
   orb2_.reset();
 
   sem_destroy(&orb2_thread_sem_1_);
