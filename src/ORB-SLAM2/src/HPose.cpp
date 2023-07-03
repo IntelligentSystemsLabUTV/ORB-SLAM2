@@ -61,10 +61,10 @@ cv::Vec3f ORB_SLAM2::HPose::GetTranslation() const
 cv::Vec4f ORB_SLAM2::HPose::GetRotation() const
 {
   cv::Vec4f _Rotation;
-  _Rotation[0] = m_Rotation[1];
-  _Rotation[1] = m_Rotation[2];
-  _Rotation[2] = m_Rotation[3];
-  _Rotation[3] = m_Rotation[0];
+  _Rotation[0] = m_Rotation[0];
+  _Rotation[1] = m_Rotation[1];
+  _Rotation[2] = m_Rotation[2];
+  _Rotation[3] = m_Rotation[3];
 
   return _Rotation;
 }

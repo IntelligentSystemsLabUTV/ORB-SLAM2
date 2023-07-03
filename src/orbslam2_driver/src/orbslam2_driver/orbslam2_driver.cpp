@@ -60,7 +60,7 @@ void ORB_SLAM2DriverNode::init_atomics()
 void ORB_SLAM2DriverNode::init_publishers()
 {
   // base_link_pose
-  pose_pub_ = this->create_publisher<PoseWithCovarianceStamped>(
+  base_link_pose_pub_ = this->create_publisher<PoseWithCovarianceStamped>(
     "~/base_link_pose",
     DUAQoS::get_datum_qos());
 
@@ -70,7 +70,7 @@ void ORB_SLAM2DriverNode::init_publishers()
     DUAQoS::get_datum_qos());
 
   // rviz/base_link_pose
-  rviz_pose_pub_ = this->create_publisher<PoseWithCovarianceStamped>(
+  rviz_base_link_pose_pub_ = this->create_publisher<PoseWithCovarianceStamped>(
     "~/rviz/base_link_pose",
     DUAQoS::Visualization::get_datum_qos());
 

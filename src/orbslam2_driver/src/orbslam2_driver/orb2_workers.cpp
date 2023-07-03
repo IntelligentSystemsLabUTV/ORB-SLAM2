@@ -54,7 +54,7 @@ void ORB_SLAM2DriverNode::orb2_thread_routine()
           true);
         orb2_pose = hpose_to_pose(
           orb2_hpose,
-          link_namespace_ + "orb2_link",
+          link_namespace_ + "orb2_odom",
           frame_ts_ros,
           cov_mat);
       } else {
@@ -77,8 +77,13 @@ void ORB_SLAM2DriverNode::orb2_thread_routine()
       // Apply initial transformation
       Eigen::Isometry3d orb2_iso = orb2_pose.get_isometry();
       init_pose_lock_.lock();
-      Eigen::Isometry3d init_iso = init_pose_.get_isometry();
+      Eigen::EulerAnglesXYZd init_rpy(
+        init_pose_.get_rpy().alpha(),
+        init_pose_.get_rpy().beta(),
+        0.0);
       init_pose_lock_.unlock();
+      Eigen::Isometry3d init_iso = Eigen::Isometry3d::Identity();
+      init_iso.rotate(init_rpy.toRotationMatrix());
       Eigen::Isometry3d orb2_corrected_iso = init_iso * orb2_iso;
       orb2_pose.set_position(orb2_corrected_iso.translation());
       orb2_pose.set_attitude(Eigen::Quaterniond(orb2_corrected_iso.rotation()));

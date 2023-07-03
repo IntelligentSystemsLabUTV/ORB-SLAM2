@@ -866,8 +866,8 @@ HPose& System::GetCurrentCameraPose()
 void System::pose_mat_to_hpose(const cv::Mat & mat, HPose & pose)
 {
   if (!mat.empty()) {
-    cv::Mat Rwc = mat.rowRange(0, 3).colRange(0, 3).t();
-    cv::Mat Twc = -Rwc * mat.rowRange(0, 3).col(3);
+    cv::Mat Rwc = mat.rowRange(0, 3).colRange(0, 3);
+    cv::Mat Twc = mat.rowRange(0, 3).col(3);
 
     Eigen::Matrix3f orMat;
     orMat(0,0) = Rwc.at<float>(0,0);
@@ -880,10 +880,9 @@ void System::pose_mat_to_hpose(const cv::Mat & mat, HPose & pose)
     orMat(2,1) = Rwc.at<float>(2,1);
     orMat(2,2) = Rwc.at<float>(2,2);
     Eigen::Quaternionf q_orb_tmp(orMat);
-    Eigen::Quaternionf _q_orb(q_orb_tmp.w(), -q_orb_tmp.z(), -q_orb_tmp.x(), -q_orb_tmp.y());
 
-    cv::Vec3f p_orb(Twc.at<float>(2), -Twc.at<float>(0), -Twc.at<float>(1));
-    cv::Vec4f q_orb(_q_orb.w(), -_q_orb.x(), _q_orb.y(), _q_orb.z());
+    cv::Vec3f p_orb(-Twc.at<float>(2), Twc.at<float>(0), Twc.at<float>(1));
+    cv::Vec4f q_orb(q_orb_tmp.w(), -q_orb_tmp.z(), q_orb_tmp.x(), q_orb_tmp.y());
 
     pose.SetPosition(p_orb);
     pose.SetRotation(q_orb);

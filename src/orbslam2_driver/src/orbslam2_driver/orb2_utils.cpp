@@ -138,8 +138,8 @@ cv::Mat ORB_SLAM2DriverNode::image_to_cv_mat(const Image::ConstSharedPtr & msg)
   cv::Mat new_frame(
     msg->height,
     msg->width,
-    CV_8UC3,
-    (void *)(msg->data.data()));
+    CV_8UC3);
+  std::memcpy(new_frame.data, msg->data.data(), msg->data.size());
 
   return new_frame;
 }
