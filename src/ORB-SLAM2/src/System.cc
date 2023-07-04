@@ -794,18 +794,16 @@ cv::Mat System::GetCurrentCovarianceMatrix(bool rotationInverse)
 
     cv::Mat cov_mat_spurious_cv = swap_rows * factor.inv() * swap_cols;
 
-    // We need to purge the spurious negative eigenvalues using spectral decomposition,
-    // then we take the diagonal matrix only as an approximation
-    // (ref.: http://www.deltaquants.com/manipulating-correlation-matrices)
+    // We need to purge the spurious negative eigenvalues: only consider variances, and
+    // set to a small value the negative ones (it is taken as the default for the
+    // robot_localization's EKF)
     Eigen::Matrix<float, 6, 6> cov_mat_spurious = cov_cv_to_eigen(cov_mat_spurious_cv);
-    Eigen::EigenSolver<Eigen::Matrix<float, 6, 6>> es(cov_mat_spurious, false);
-    Eigen::Matrix<float, 6, 6> L = es.eigenvalues().real().asDiagonal();
+    Eigen::Matrix<float, 6, 6> L = cov_mat_spurious.diagonal().asDiagonal();
     for (int i = 0; i < 6; i++) {
       if (L(i, i) < 0.0f) {
         L(i, i) = float(1e-6);
       }
     }
-
     return cov_eigen_to_cv(L);
   } else {
     return cv::Mat::eye(6, 6, CV_32F);

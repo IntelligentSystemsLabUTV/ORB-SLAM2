@@ -27,7 +27,6 @@
 #include <opencv2/core/core.hpp>
 #include <Eigen/Core>
 #include <Eigen/Dense>
-#include <Eigen/Eigenvalues>
 #include <vector>
 
 #include "Tracking.h"

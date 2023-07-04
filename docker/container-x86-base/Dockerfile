@@ -30,6 +30,7 @@ RUN git clone --single-branch --branch 'v0.8' --depth 1 https://github.com/steve
   cmake --build build && \
   cd build && \
   make install && \
+  ldconfig && \
   chgrp -R internal /opt/Pangolin && \
   chmod -R g+rwx /opt/Pangolin
 WORKDIR /root
