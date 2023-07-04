@@ -42,7 +42,7 @@ OPTION(USE_CONTRIB "Set on/off" OFF)
 option(INSTALL_CMAKE_CONFIG "Install original CMake config file" OFF)
 option(CONFIGURE_SOLINKS "Configure symbolic links for shared libraries" OFF)
 
-OPTION(USE_AVX "Set on/off" ON)
+OPTION(USE_AVX "Set on/off" OFF)
 OPTION(USE_SSE3 "Set on/off" ON)
 
 # ----------------------------------------------------------------------------
