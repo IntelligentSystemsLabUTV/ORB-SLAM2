@@ -33,16 +33,16 @@ namespace ORB_SLAM2
 
 System::System(const string &strVocFile, const string &strSettingsFile, const eSensor sensor,
                const bool bUseViewer, bool is_save_map_, bool replayer_):mSensor(sensor), is_save_map(is_save_map_), replayer(replayer_), mpViewer(static_cast<Viewer*>(NULL)), mbReset(false),
-        mbActivateLocalizationMode(false), mbDeactivateLocalizationMode(false), mCurrCameraPose()
+        mbActivateLocalizationMode(false), mbDeactivateLocalizationMode(false), mCurrCameraPose(cv::Mat::eye(4, 4, CV_32F))
 {
-    cout << "Input sensor was set to: ";
+    cout << "System mode: ";
 
     if (mSensor == MONOCULAR)
-        cout << "Monocular" << endl;
+        cout << "MONOCULAR" << endl;
     else if (mSensor == STEREO)
-        cout << "Stereo" << endl;
+        cout << "STEREO" << endl;
     else if (mSensor == RGBD)
-        cout << "RGB-D" << endl;
+        cout << "RGBD" << endl;
 
     // Check settings file
     cv::FileStorage fsSettings(strSettingsFile.c_str(), cv::FileStorage::READ);
@@ -67,15 +67,15 @@ System::System(const string &strVocFile, const string &strSettingsFile, const eS
 
     // Load FBoW Vocabulary
     cout << endl << "Loading FBoW Vocabulary... ";
-
     mpFBOWVocabulary = new fbow::Vocabulary();
     mpFBOWVocabulary->readFromFile(strVocFile);
-
     cout << "Vocabulary loaded!" << endl << endl;
 
-    // Create KeyFrame Database
-    // Create the Map
+    // Set camera parameters
+    mCameraFx = fsSettings["Camera.fx"];
+    mCameraFy = fsSettings["Camera.fy"];
 
+    // Create KeyFrame database and the map
     if (!mapfile.empty() && LoadMap(mapfile))
     {
         bReuseMap = true;
@@ -84,7 +84,7 @@ System::System(const string &strVocFile, const string &strSettingsFile, const eS
     }
     else
     {
-        std::cout << "Map NOT loaded" << std::endl;
+        std::cout << "Map not loaded" << std::endl;
         mpKeyFrameDatabase = new KeyFrameDatabase(mpFBOWVocabulary);
         mpMap = new Map();
     }
@@ -113,7 +113,7 @@ System::System(const string &strVocFile, const string &strSettingsFile, const eS
         mpTracker->SetViewer(mpViewer);
     }
 
-    //Set pointers between threads
+    // Set pointers between threads
     mpTracker->SetLocalMapper(mpLocalMapper);
     mpTracker->SetLoopClosing(mpLoopCloser);
 
@@ -183,6 +183,7 @@ HPose System::TrackStereo(const cv::Mat &imLeft, const cv::Mat &imRight, const d
     }
 
     cv::Mat Tcw = mpTracker->GrabImageStereo(imLeft, imRight, timestamp);
+    mCurrCameraPose = Tcw;
     HPose pose{};
     pose_mat_to_hpose(Tcw, pose);
 
@@ -237,6 +238,7 @@ HPose System::TrackRGBD(const cv::Mat &im, const cv::Mat &depthmap, const double
     }
 
     cv::Mat Tcw = mpTracker->GrabImageRGBD(im, depthmap, timestamp);
+    mCurrCameraPose = Tcw;
     HPose pose{};
     pose_mat_to_hpose(Tcw, pose);
 
@@ -292,6 +294,7 @@ HPose System::TrackIRD(const cv::Mat &im, const cv::Mat &depthmap, const double 
     }
 
     cv::Mat Tcw = mpTracker->GrabImageRGBD(im, depthmap, timestamp);
+    mCurrCameraPose = Tcw;
     HPose pose{};
     pose_mat_to_hpose(Tcw, pose);
 
@@ -346,6 +349,7 @@ HPose System::TrackMonocular(const cv::Mat &im, const double &timestamp)
     }
 
     cv::Mat Tcw = mpTracker->GrabImageMonocular(im, timestamp);
+    mCurrCameraPose = Tcw;
     HPose pose{};
     pose_mat_to_hpose(Tcw, pose);
 
@@ -523,7 +527,7 @@ void System::SaveKeyFrameTrajectoryTUM(const string &filename)
     }
 
     f.close();
-    cout << endl << "trajectory saved!" << endl;
+    cout << endl << "Trajectory saved!" << endl;
 }
 
 void System::SaveTrajectoryKITTI(const string &filename)
@@ -560,7 +564,7 @@ void System::SaveTrajectoryKITTI(const string &filename)
 
         cv::Mat Trw = cv::Mat::eye(4,4,CV_32F);
 
-        while(pKF->isBad())
+        while (pKF->isBad())
         {
           //  cout << "bad parent" << endl;
             Trw = Trw*pKF->mTcp;
@@ -578,7 +582,7 @@ void System::SaveTrajectoryKITTI(const string &filename)
              Rwc.at<float>(2,0) << " " << Rwc.at<float>(2,1)  << " " << Rwc.at<float>(2,2) << " "  << twc.at<float>(2) << endl;
     }
     f.close();
-    cout << endl << "trajectory saved!" << endl;
+    cout << endl << "Trajectory saved!" << endl;
 }
 
 void System::SaveTrajectory(const string &filename)
@@ -633,7 +637,7 @@ void System::SaveTrajectory(const string &filename)
         f << setprecision(6) << *lT << " " <<  setprecision(9) << twc.at<float>(0) << " " << twc.at<float>(1) << " " << twc.at<float>(2) << " " << q[0] << " " << q[1] << " " << q[2] << " " << q[3] << endl;
     }
     f.close();
-    cout << endl << "trajectory saved!" << endl;
+    cout << endl << "Trajectory saved!" << endl;
 }
 
 void System::SaveKeyFrameTrajectory(const string &filename)
@@ -647,11 +651,11 @@ void System::SaveKeyFrameTrajectory(const string &filename)
     f.open(filename.c_str());
     f << fixed;
 
-    for(size_t i=0; i<vpKFs.size(); i++)
+    for (size_t i=0; i<vpKFs.size(); i++)
     {
         KeyFrame* pKF = vpKFs[i];
 
-        if(pKF->isBad())
+        if (pKF->isBad())
             continue;
 
         cv::Mat R = pKF->GetRotation().t();
@@ -662,7 +666,7 @@ void System::SaveKeyFrameTrajectory(const string &filename)
     }
 
     f.close();
-    cout << endl << "trajectory saved!" << endl;
+    cout << endl << "Trajectory saved!" << endl;
 }
 
 int System::GetTrackingState()
@@ -686,8 +690,12 @@ vector<cv::KeyPoint> System::GetTrackedKeyPointsUn()
 // Computing covariance matrix for VSLAM pose as per
 // Appendix F in "Asynchronous Multi-Sensor Fusion for 3D
 // Mapping and Localization", P. Geneva, K. Eckenhoff, G. Huang
-cv::Mat System::GetCurrentCovarianceMatrix(float fx, float fy, HPose pose, bool rotationInverse)
+// Converts it into a NWU coordinate system
+cv::Mat System::GetCurrentCovarianceMatrix(bool rotationInverse)
 {
+  float fx = mCameraFx;
+  float fy = mCameraFy;
+
   // Computing Visual odometry covariance matrix
   if (this->GetTrackingState() == Tracking::OK)
   {
@@ -696,78 +704,109 @@ cv::Mat System::GetCurrentCovarianceMatrix(float fx, float fy, HPose pose, bool 
     for (size_t i = 0; i < trackedPoints.size(); i++)
     {
       MapPoint* pMP = trackedPoints[i];
-      if(pMP)
+      if (pMP)
         featPos.push_back(pMP->GetWorldPos());
     }
 
-    cv::Mat cameraPose = cv::Mat::zeros(4, 4, CV_32F);
-    hpose_to_pose_mat(pose, cameraPose);
+    cv::Mat cameraPose = GetCurrentCameraPose();
 
-    cv::Mat lambda = cv::Mat::zeros(2,2,CV_32F);
-    cv::Mat factor = cv::Mat::zeros(6,6,CV_32F);
-    lambda.at<float>(0,0) = 1.0/(fx*fx);
-    lambda.at<float>(1,1) = 1.0/(fy*fy);
-    cv::Mat Rcg = cv::Mat::zeros(3,3,CV_32F); // Rotation from Camera pose to Global frame
-    Rcg.at<float>(0,0) = cameraPose.at<float>(0,0);
-    Rcg.at<float>(0,1) = cameraPose.at<float>(0,1);
-    Rcg.at<float>(0,2) = cameraPose.at<float>(0,2);
-    Rcg.at<float>(1,0) = cameraPose.at<float>(1,0);
-    Rcg.at<float>(1,1) = cameraPose.at<float>(1,1);
-    Rcg.at<float>(1,2) = cameraPose.at<float>(1,2);
-    Rcg.at<float>(2,0) = cameraPose.at<float>(2,0);
-    Rcg.at<float>(2,1) = cameraPose.at<float>(2,1);
-    Rcg.at<float>(2,2) = cameraPose.at<float>(2,2);
+    cv::Mat lambda = cv::Mat::zeros(2, 2, CV_32F);
+    cv::Mat factor = cv::Mat::zeros(6, 6, CV_32F);
+    lambda.at<float>(0, 0) = 1.0f / (fx*fx);
+    lambda.at<float>(1, 1) = 1.0f / (fy*fy);
+    cv::Mat Rcg = cv::Mat::zeros(3, 3, CV_32F); // Rotation from Camera pose to Global frame
+    Rcg.at<float>(0, 0) = cameraPose.at<float>(0, 0);
+    Rcg.at<float>(0, 1) = cameraPose.at<float>(0, 1);
+    Rcg.at<float>(0, 2) = cameraPose.at<float>(0, 2);
+    Rcg.at<float>(1, 0) = cameraPose.at<float>(1, 0);
+    Rcg.at<float>(1, 1) = cameraPose.at<float>(1, 1);
+    Rcg.at<float>(1, 2) = cameraPose.at<float>(1, 2);
+    Rcg.at<float>(2, 0) = cameraPose.at<float>(2, 0);
+    Rcg.at<float>(2, 1) = cameraPose.at<float>(2, 1);
+    Rcg.at<float>(2, 2) = cameraPose.at<float>(2, 2);
 
-    if (rotationInverse)
+    if (rotationInverse) {
       Rcg = Rcg.inv();
+    }
 
     for (size_t j = 0; j < featPos.size(); j++)
     {
-      cv::Mat H1 = cv::Mat::zeros(2,3,CV_32F);
-      cv::Mat H2 = cv::Mat::zeros(3,6,CV_32F);
-      cv::Mat Pcf = cv::Mat::zeros(3,1,CV_32F); // Pose of feature in respect to Camera frame
-      cv::Mat Pgc = cv::Mat::zeros(3,1,CV_32F);; // Pose of camera in respect to Global frame
+      cv::Mat H1 = cv::Mat::zeros(2, 3, CV_32F);
+      cv::Mat H2 = cv::Mat::zeros(3, 6, CV_32F);
+      cv::Mat Pcf = cv::Mat::zeros(3, 1, CV_32F); // Pose of feature in respect to Camera frame
+      cv::Mat Pgc = cv::Mat::zeros(3, 1, CV_32F); // Pose of camera in respect to Global frame
       float a, b;
-      Pgc.at<float>(0) = cameraPose.at<float>(0,3);
-      Pgc.at<float>(1) = cameraPose.at<float>(1,3);
-      Pgc.at<float>(2) = cameraPose.at<float>(2,3);
+      Pgc.at<float>(0) = cameraPose.at<float>(0, 3);
+      Pgc.at<float>(1) = cameraPose.at<float>(1, 3);
+      Pgc.at<float>(2) = cameraPose.at<float>(2, 3);
 
       Pcf = Rcg * (featPos[j] - Pgc);
 
-      if (Pcf.at<float>(2) == 0.0f)
-      {
-        a = 1000000;
-        b = 1000000000000;
+      if (Pcf.at<float>(2) == 0.0f) {
+        a = 1000000.0f;
+        b = 1000000000000.0f;
+      } else {
+        a = 1.0f / Pcf.at<float>(2);
+        b = 1.0f / (Pcf.at<float>(2) * Pcf.at<float>(2));
       }
-      else
-      {
-        a = 1/Pcf.at<float>(2);
-        b = 1/(Pcf.at<float>(2)*Pcf.at<float>(2));
-      }
-      H1.at<float>(0,0) = a;
-      H1.at<float>(0,2) = -Pcf.at<float>(0)*b;
-      H1.at<float>(1,1) = a;
-      H1.at<float>(1,2) = -Pcf.at<float>(1)*b;
-      H2.at<float>(0,1) = -Pcf.at<float>(2);
-      H2.at<float>(0,2) = Pcf.at<float>(1);
-      H2.at<float>(0,3) = -Rcg.at<float>(0,0);
-      H2.at<float>(0,4) = -Rcg.at<float>(0,1);
-      H2.at<float>(0,5) = -Rcg.at<float>(0,2);
-      H2.at<float>(1,0) = Pcf.at<float>(2);
-      H2.at<float>(1,2) = -Pcf.at<float>(0);
-      H2.at<float>(1,3) = -Rcg.at<float>(1,0);
-      H2.at<float>(1,4) = -Rcg.at<float>(1,1);
-      H2.at<float>(1,5) = -Rcg.at<float>(1,2);
-      H2.at<float>(2,0) = -Pcf.at<float>(1);
-      H2.at<float>(2,1) = Pcf.at<float>(0);
-      H2.at<float>(2,3) = -Rcg.at<float>(2,0);
-      H2.at<float>(2,4) = -Rcg.at<float>(2,1);
-      H2.at<float>(2,5) = -Rcg.at<float>(2,2);
+      H1.at<float>(0, 0) = a;
+      H1.at<float>(0, 2) = -Pcf.at<float>(0) * b;
+      H1.at<float>(1, 1) = a;
+      H1.at<float>(1, 2) = -Pcf.at<float>(1) * b;
+      H2.at<float>(0, 1) = -Pcf.at<float>(2);
+      H2.at<float>(0, 2) = Pcf.at<float>(1);
+      H2.at<float>(0, 3) = -Rcg.at<float>(0, 0);
+      H2.at<float>(0, 4) = -Rcg.at<float>(0, 1);
+      H2.at<float>(0, 5) = -Rcg.at<float>(0, 2);
+      H2.at<float>(1, 0) = Pcf.at<float>(2);
+      H2.at<float>(1, 2) = -Pcf.at<float>(0);
+      H2.at<float>(1, 3) = -Rcg.at<float>(1, 0);
+      H2.at<float>(1, 4) = -Rcg.at<float>(1, 1);
+      H2.at<float>(1, 5) = -Rcg.at<float>(1, 2);
+      H2.at<float>(2, 0) = -Pcf.at<float>(1);
+      H2.at<float>(2, 1) = Pcf.at<float>(0);
+      H2.at<float>(2, 3) = -Rcg.at<float>(2, 0);
+      H2.at<float>(2, 4) = -Rcg.at<float>(2, 1);
+      H2.at<float>(2, 5) = -Rcg.at<float>(2, 2);
 
-      cv::Mat tmp = H1*H2;
+      cv::Mat tmp = H1 * H2;
       factor = factor + tmp.t() * lambda.inv() * tmp;
     }
-    return factor.inv();
+
+    cv::Mat swap_rows = cv::Mat::zeros(6, 6, CV_32F);
+    cv::Mat swap_cols = cv::Mat::zeros(6, 6, CV_32F);
+
+    // Swap position information
+    swap_rows.at<float>(0, 2) = -1.0f;
+    swap_rows.at<float>(1, 0) = 1.0f;
+    swap_rows.at<float>(2, 1) = 1.0f;
+    swap_cols.at<float>(2, 0) = -1.0f;
+    swap_cols.at<float>(0, 1) = 1.0f;
+    swap_cols.at<float>(1, 2) = 1.0f;
+
+    // Swap rotation information
+    swap_rows.at<float>(3, 5) = -1.0f;
+    swap_rows.at<float>(4, 3) = 1.0f;
+    swap_rows.at<float>(5, 4) = 1.0f;
+    swap_cols.at<float>(5, 3) = -1.0f;
+    swap_cols.at<float>(3, 4) = 1.0f;
+    swap_cols.at<float>(4, 5) = 1.0f;
+
+    cv::Mat cov_mat_spurious_cv = swap_rows * factor.inv() * swap_cols;
+
+    // We need to purge the spurious negative eigenvalues using spectral decomposition,
+    // then we take the diagonal matrix only as an approximation
+    // (ref.: http://www.deltaquants.com/manipulating-correlation-matrices)
+    Eigen::Matrix<float, 6, 6> cov_mat_spurious = cov_cv_to_eigen(cov_mat_spurious_cv);
+    Eigen::EigenSolver<Eigen::Matrix<float, 6, 6>> es(cov_mat_spurious, false);
+    Eigen::Matrix<float, 6, 6> L = es.eigenvalues().real().asDiagonal();
+    for (int i = 0; i < 6; i++) {
+      if (L(i, i) < 0.0f) {
+        L(i, i) = float(1e-6);
+      }
+    }
+
+    return cov_eigen_to_cv(L);
   } else {
     return cv::Mat::eye(6, 6, CV_32F);
   }
@@ -857,12 +896,7 @@ bool System::LoadMap(const string &filename)
     return true;
 }
 
-HPose& System::GetCurrentCameraPose()
-{
-    return mCurrCameraPose;
-}
-
-// Converts an OpenCV isometry matrix to an HPose
+// Converts an OpenCV isometry matrix to an HPose, converting into a NWU coordinate system
 void System::pose_mat_to_hpose(const cv::Mat & mat, HPose & pose)
 {
   if (!mat.empty()) {
@@ -870,15 +904,15 @@ void System::pose_mat_to_hpose(const cv::Mat & mat, HPose & pose)
     cv::Mat Twc = -Rwc.t() * mat.rowRange(0, 3).col(3);
 
     Eigen::Matrix3f orMat;
-    orMat(0,0) = Rwc.at<float>(0,0);
-    orMat(0,1) = Rwc.at<float>(0,1);
-    orMat(0,2) = Rwc.at<float>(0,2);
-    orMat(1,0) = Rwc.at<float>(1,0);
-    orMat(1,1) = Rwc.at<float>(1,1);
-    orMat(1,2) = Rwc.at<float>(1,2);
-    orMat(2,0) = Rwc.at<float>(2,0);
-    orMat(2,1) = Rwc.at<float>(2,1);
-    orMat(2,2) = Rwc.at<float>(2,2);
+    orMat(0, 0) = Rwc.at<float>(0, 0);
+    orMat(0, 1) = Rwc.at<float>(0, 1);
+    orMat(0, 2) = Rwc.at<float>(0, 2);
+    orMat(1, 0) = Rwc.at<float>(1, 0);
+    orMat(1, 1) = Rwc.at<float>(1, 1);
+    orMat(1, 2) = Rwc.at<float>(1, 2);
+    orMat(2, 0) = Rwc.at<float>(2, 0);
+    orMat(2, 1) = Rwc.at<float>(2, 1);
+    orMat(2, 2) = Rwc.at<float>(2, 2);
     Eigen::Quaternionf q_orb_tmp(orMat);
 
     cv::Vec3f p_orb(Twc.at<float>(2), -Twc.at<float>(0), -Twc.at<float>(1));
@@ -889,32 +923,28 @@ void System::pose_mat_to_hpose(const cv::Mat & mat, HPose & pose)
   }
 }
 
-// Converts an HPose to an OpenCV isometry matrix
-void System::hpose_to_pose_mat(const HPose & hpose, cv::Mat & mat)
+Eigen::Matrix<float, 6, 6> System::cov_cv_to_eigen(const cv::Mat & cov_cv)
 {
-  Eigen::Vector3f hpose_p(
-    hpose.GetTranslation()(0),
-    hpose.GetTranslation()(1),
-    hpose.GetTranslation()(2));
-  Eigen::Quaternionf hpose_q(
-    hpose.GetRotation()(0),
-    hpose.GetRotation()(1),
-    hpose.GetRotation()(2),
-    hpose.GetRotation()(3));
-
-  Eigen::Isometry3f hpose_iso = Eigen::Isometry3f::Identity();
-  hpose_iso.rotate(hpose_q);
-  hpose_iso.pretranslate(hpose_p);
-
-  for (int i = 0; i < 3; i++) {
-    mat.at<float>(i, 3) = hpose_iso(i, 3);
-  }
-
-  for (int i = 0; i < 2; i++) {
-    for (int j = 0; j < 2; j++) {
-      mat.at<float>(i, j) = hpose_iso(i, j);
+  Eigen::Matrix<float, 6, 6> cov_eigen;
+  for (int i = 0; i < 6; i++) {
+    for (int j = 0; j < 6; j++) {
+      cov_eigen(i, j) = cov_cv.at<float>(i, j);
     }
   }
+
+  return cov_eigen;
+}
+
+cv::Mat System::cov_eigen_to_cv(const Eigen::Matrix<float, 6, 6> & cov_eigen)
+{
+  cv::Mat cov_cv(6, 6, CV_32F);
+  for (int i = 0; i < 6; i++) {
+    for (int j = 0; j < 6; j++) {
+      cov_cv.at<float>(i, j) = cov_eigen(i, j);
+    }
+  }
+
+  return cov_cv;
 }
 
 } // namespace ORB_SLAM2

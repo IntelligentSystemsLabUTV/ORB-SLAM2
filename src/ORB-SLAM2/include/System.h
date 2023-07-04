@@ -25,7 +25,9 @@
 #include <string>
 #include <thread>
 #include <opencv2/core/core.hpp>
+#include <Eigen/Core>
 #include <Eigen/Dense>
+#include <Eigen/Eigenvalues>
 #include <vector>
 
 #include "Tracking.h"
@@ -60,7 +62,7 @@ class System
 {
 public:
     // Input sensor
-    enum eSensor{
+    enum eSensor {
         MONOCULAR=0,
         STEREO=1,
         RGBD=2
@@ -141,9 +143,16 @@ public:
     std::vector<MapPoint*> GetTrackedMapPoints();
     std::vector<cv::KeyPoint> GetTrackedKeyPointsUn();
 
-    HPose& GetCurrentCameraPose();
+    inline const cv::Mat & GetCurrentCameraPose() const
+    {
+      return mCurrCameraPose;
+    }
+    inline void SetCurrentCameraPose(const cv::Mat & pose)
+    {
+      mCurrCameraPose = pose.clone();
+    }
 
-    cv::Mat GetCurrentCovarianceMatrix(float, float, HPose, bool);
+    cv::Mat GetCurrentCovarianceMatrix(bool);
 
     // Returns the currently stored map: each column is a 3D-point coordinates vector
     std::vector<Eigen::Vector3f> GetMap(bool wait_gba = false);
@@ -153,11 +162,11 @@ private:
     void SaveMap(const string &filename);
     bool LoadMap(const string &filename);
 
-    // Converts an OpenCV isometry matrix to an HPose
+    // Converts an OpenCV isometry matrix to an HPose, converting into a NWU coordinate system
     void pose_mat_to_hpose(const cv::Mat & mat, HPose & hpose);
 
-    // Converts an HPose to an OpenCV isometry matrix
-    void hpose_to_pose_mat(const HPose & hpose, cv::Mat & mat);
+    Eigen::Matrix<float, 6, 6> cov_cv_to_eigen(const cv::Mat & cov_cv);
+    cv::Mat cov_eigen_to_cv(const Eigen::Matrix<float, 6, 6> & cov_eigen);
 
 private:
 
@@ -217,7 +226,11 @@ private:
     std::mutex mMutexState;
 
     // Current camera pose
-    HPose mCurrCameraPose;
+    cv::Mat mCurrCameraPose;
+
+    // Camera parameters
+    float mCameraFx;
+    float mCameraFy;
 };
 
 }// namespace ORB_SLAM

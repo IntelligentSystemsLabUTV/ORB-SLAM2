@@ -1,8 +1,6 @@
 /orbslam2/orbslam2_driver:
   ros__parameters:
     autostart: true
-    camera_fx: 261.075042724
-    camera_fy: 261.075042724
     camera_orientation_topic: /stanis/slam/zed_2i_driver/imu
     camera_topic_1: /stanis/slam/zed_2i_driver/left/image_rect_color
     camera_topic_2: /stanis/slam/zed_2i_driver/right/image_rect_color

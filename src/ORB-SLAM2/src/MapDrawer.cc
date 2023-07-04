@@ -284,9 +284,12 @@ void MapDrawer::SetSystemCameraPose(void *mpSystem)
             twc = -Rwc * mCameraPose.rowRange(0, 3).col(3);
         }
 
-        system->GetCurrentCameraPose().SetPosition(twc);
-        system->GetCurrentCameraPose().SetRotation(Rwc);
+        cv::Mat Twc = cv::Mat::eye(4, 4, CV_32F);
+        Rwc.copyTo(Twc.rowRange(0, 3).colRange(0, 3));
+        twc.copyTo(Twc.rowRange(0, 3).col(3));
+
+        system->SetCurrentCameraPose(Twc);
     }
 }
 
-} //namespace ORB_SLAM
+} // namespace ORB_SLAM2
