@@ -50,12 +50,12 @@ bool ORB_SLAM2DriverNode::init_orbslam2()
       this,
       camera_topic_1_,
       transport_,
-      DUAQoS::get_image_qos().get_rmw_qos_profile());
+      DUAQoS::get_image_qos(5).get_rmw_qos_profile());
     camera_2_sub_->subscribe(
       this,
       camera_topic_2_,
       transport_,
-      DUAQoS::get_image_qos().get_rmw_qos_profile());
+      DUAQoS::get_image_qos(5).get_rmw_qos_profile());
 
     stereo_sync_ = std::make_shared<ImageSynchronizer>(
       ImageSyncPolicy(4),
