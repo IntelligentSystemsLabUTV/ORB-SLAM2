@@ -152,6 +152,7 @@ private:
   std::string camera_orientation_topic_;
   std::string camera_topic_1_;
   std::string camera_topic_2_;
+  double covariance_scaling_factor_;
   bool display_;
   bool frame_view_;
   std::string link_namespace_;

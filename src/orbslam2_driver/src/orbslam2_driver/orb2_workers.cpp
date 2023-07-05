@@ -47,7 +47,7 @@ void ORB_SLAM2DriverNode::orb2_thread_routine()
       PoseKit::Pose orb2_pose{};
       if (mode_str_ == "STEREO") {
         ORB_SLAM2::HPose orb2_hpose = orb2_->TrackStereo(frame_1, frame_2, frame_ts);
-        cv::Mat cov_mat = orb2_->GetCurrentCovarianceMatrix(true);
+        cv::Mat cov_mat = covariance_scaling_factor_ * orb2_->GetCurrentCovarianceMatrix(true);
         orb2_pose = hpose_to_pose(
           orb2_hpose,
           link_namespace_ + "orb2_odom",

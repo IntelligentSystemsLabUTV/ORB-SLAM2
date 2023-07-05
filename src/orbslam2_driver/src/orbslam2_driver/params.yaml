@@ -35,6 +35,17 @@ params:
     read_only: false
     var_name: camera_topic_2_
 
+  covariance_scaling_factor:
+    type: double
+    default_value: 1000.0
+    min_value: 0.000001
+    max_value: 1000000.0
+    step: 0.0
+    description: "Covariance matrix scaling factor."
+    constraints: ""
+    read_only: false
+    var_name: covariance_scaling_factor_
+
   display:
     type: bool
     default_value: false
