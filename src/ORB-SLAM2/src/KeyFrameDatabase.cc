@@ -28,7 +28,7 @@ using namespace std;
 namespace ORB_SLAM2
 {
 
-KeyFrameDatabase::KeyFrameDatabase (fbow::Vocabulary *voc):
+KeyFrameDatabase::KeyFrameDatabase(fbow::Vocabulary *voc):
     mpFBOWVoc(voc)
 {
     mvInvertedFile.resize(voc->getTotalWords());
@@ -38,8 +38,14 @@ void KeyFrameDatabase::add(KeyFrame *pKF)
 {
     unique_lock<mutex> lock(mMutex);
 
-    for(fbow::fBow::const_iterator vit = pKF->mFbowVec.begin(), vend = pKF->mFbowVec.end(); vit != vend; vit++)
+    for (fbow::fBow::const_iterator vit = pKF->mFbowVec.begin(), vend = pKF->mFbowVec.end(); vit != vend; vit++)
+    {
+        if (vit->first >= mvInvertedFile.size()) {
+            std::cerr << "KeyFrameDatabase::add: Resizing mvInvertedFile to store new KeyFrame" << std::endl;
+            mvInvertedFile.resize(vit->first + 1);
+        }
         mvInvertedFile[vit->first].push_back(pKF);
+    }
 }
 
 void KeyFrameDatabase::erase(KeyFrame* pKF)
@@ -50,9 +56,14 @@ void KeyFrameDatabase::erase(KeyFrame* pKF)
     for(fbow::fBow::const_iterator vit = pKF->mFbowVec.begin(), vend = pKF->mFbowVec.end(); vit != vend; vit++)
     {
         // List of keyframes that share the word
+        if (vit->first >= mvInvertedFile.size()) {
+            std::cerr << "KeyFrameDatabase::erase: Resizing mvInvertedFile, discarding iteration" << std::endl;
+            mvInvertedFile.resize(vit->first + 1);
+            continue;
+        }
         list<KeyFrame*> &lKFs = mvInvertedFile[vit->first];
 
-        for(list<KeyFrame*>::iterator lit = lKFs.begin(), lend = lKFs.end(); lit != lend; lit++)
+        for (list<KeyFrame*>::iterator lit = lKFs.begin(), lend = lKFs.end(); lit != lend; lit++)
         {
             if(pKF == *lit)
             {
@@ -81,6 +92,11 @@ vector<KeyFrame*> KeyFrameDatabase::DetectLoopCandidates(KeyFrame* pKF, float mi
 
         for(fbow::fBow::const_iterator vit = pKF->mFbowVec.begin(), vend = pKF->mFbowVec.end(); vit != vend; vit++)
         {
+            if (vit->first >= mvInvertedFile.size()) {
+                std::cerr << "KeyFrameDatabase::DetectLoopCandidates: Resizing mvInvertedFile, discarding iteration" << std::endl;
+                mvInvertedFile.resize(vit->first + 1);
+                continue;
+            }
             list<KeyFrame*> &lKFs = mvInvertedFile[vit->first];
 
             for(list<KeyFrame*>::iterator lit = lKFs.begin(), lend = lKFs.end(); lit != lend; lit++)
@@ -202,6 +218,10 @@ vector<KeyFrame*> KeyFrameDatabase::DetectRelocalizationCandidates(Frame *F)
 
         for(fbow::fBow::const_iterator vit = F->mFbowVec.begin(), vend = F->mFbowVec.end(); vit != vend; vit++)
         {
+            if (vit->first >= mvInvertedFile.size()) {
+                std::cerr << "KeyFrameDatabase::DetectRelocalizationCandidates: Resizing mvInvertedFile, discarding iteration" << std::endl;
+                mvInvertedFile.resize(vit->first + 1);
+            }
             list<KeyFrame*> &lKFs = mvInvertedFile[vit->first];
 
             for(list<KeyFrame*>::iterator lit = lKFs.begin(), lend = lKFs.end(); lit != lend; lit++)
@@ -218,20 +238,20 @@ vector<KeyFrame*> KeyFrameDatabase::DetectRelocalizationCandidates(Frame *F)
         }
     }
 
-    if(lKFsSharingWords.empty())
+    if (lKFsSharingWords.empty())
         return vector<KeyFrame*>();
 
     // Only compare against those keyframes that share enough words
     int maxCommonWords = 0;
     for(list<KeyFrame*>::iterator lit = lKFsSharingWords.begin(), lend = lKFsSharingWords.end(); lit != lend; lit++)
     {
-        if((*lit)->mnRelocWords>maxCommonWords)
+        if ((*lit)->mnRelocWords>maxCommonWords)
             maxCommonWords=(*lit)->mnRelocWords;
     }
 
     int minCommonWords = maxCommonWords*0.8f;
 
-    list<pair<float,KeyFrame*> > lScoreAndMatch;
+    list<pair<float, KeyFrame*>> lScoreAndMatch;
 
     int nscores = 0;
 

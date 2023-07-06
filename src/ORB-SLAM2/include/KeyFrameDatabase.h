@@ -73,7 +73,7 @@ protected:
   fbow::Vocabulary* mpFBOWVoc;
 
   // Inverted file
-  std::vector<std::list<KeyFrame*> > mvInvertedFile;
+  std::vector<std::list<KeyFrame*>> mvInvertedFile;
 
   // Mutex
   std::mutex mMutex;

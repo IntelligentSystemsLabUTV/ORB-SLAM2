@@ -37,7 +37,7 @@ endif()
 
 # Build options
 option(BUILD_TESTS "Build tests" OFF)
-OPTION(BUILD_UTILS	"Set to OFF to not build utilities" OFF)
+OPTION(BUILD_UTILS	"Build utilities" OFF)
 OPTION(USE_CONTRIB "Set on/off" OFF)
 option(INSTALL_CMAKE_CONFIG "Install original CMake config file" OFF)
 option(CONFIGURE_SOLINKS "Configure symbolic links for shared libraries" OFF)
@@ -55,7 +55,7 @@ find_package(OpenCV 4 REQUIRED)
 INCLUDE_DIRECTORIES(${OpenCV_INCLUDE_DIRS})
 
 IF(USE_CONTRIB)
-add_definitions(-DUSE_CONTRIB)
+  add_definitions(-DUSE_CONTRIB)
 ENDIF()
 
 SET(REQUIRED_LIBRARIES ${REQUIRED_LIBRARIES} ${OpenCV_LIBS})
@@ -66,10 +66,10 @@ SET(REQUIRED_LIBRARIES ${REQUIRED_LIBRARIES} ${OpenCV_LIBS})
 # ----------------------------------------------------------------------------
 OPTION(INSTALL_DOC "Set to ON to build/install Documentation" OFF)
 IF(INSTALL_DOC)
-   FIND_PACKAGE(Doxygen REQUIRED)
-   MESSAGE(STATUS "Installing documentation")
-   INCLUDE("${PROJECT_SOURCE_DIR}/generateDoc.cmake")
-   GENERATE_DOCUMENTATION(${PROJECT_SOURCE_DIR}/dox.in)
+  FIND_PACKAGE(Doxygen REQUIRED)
+  MESSAGE(STATUS "Installing documentation")
+  INCLUDE("${PROJECT_SOURCE_DIR}/generateDoc.cmake")
+  GENERATE_DOCUMENTATION(${PROJECT_SOURCE_DIR}/dox.in)
 ENDIF()
 
 # ----------------------------------------------------------------------------

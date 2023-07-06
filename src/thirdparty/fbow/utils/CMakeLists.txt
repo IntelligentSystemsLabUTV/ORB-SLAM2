@@ -1,11 +1,25 @@
-# CMake file for sba's demo program
-INCLUDE_DIRECTORIES(${PROJECT_SOURCE_DIR}/src /home/mjmarin/libs/ORB_SLAM2/include)
-LINK_LIBRARIES(${PROJECT_NAME})
+# Vocabulary creator step 0
+add_executable(fbow_create_voc_step0
+  fbow_create_voc_step0.cpp)
+target_include_directories(fbow_create_voc_step0 PUBLIC
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  $<INSTALL_INTERFACE:include>
+  ${OpenCV_INCLUDE_DIRS})
+target_link_libraries(fbow_create_voc_step0
+  fbow
+  ${OpenCV_LIBS})
 
-ADD_EXECUTABLE(fbow_create_voc_step0 fbow_create_voc_step0.cpp dirreader.h)
-ADD_EXECUTABLE(fbow_create_voc_step0_list fbow_create_voc_step0_list.cpp)
-ADD_EXECUTABLE(fbow_create_voc_step1 fbow_create_voc_step1.cpp)
-#ADD_EXECUTABLE(fbow_create_voc_step1_opencv fbow_create_voc_step1_opencv.cpp)
-ADD_EXECUTABLE(fbow_transform fbow_transform.cpp)
-ADD_EXECUTABLE(image_matching image_matching.cpp)
-INSTALL(TARGETS  fbow_create_voc_step0    fbow_create_voc_step1 fbow_transform RUNTIME DESTINATION bin)
+# Vocabulary creator step 1
+add_executable(fbow_create_voc_step1
+  fbow_create_voc_step1.cpp)
+target_include_directories(fbow_create_voc_step1 PUBLIC
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
+  $<INSTALL_INTERFACE:include>
+  ${OpenCV_INCLUDE_DIRS})
+target_link_libraries(fbow_create_voc_step1
+  fbow
+  ${OpenCV_LIBS})
+
+install(
+  TARGETS fbow_create_voc_step0 fbow_create_voc_step1
+  DESTINATION lib/${PROJECT_NAME})

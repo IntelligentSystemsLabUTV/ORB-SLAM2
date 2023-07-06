@@ -159,14 +159,14 @@ private:
 
     //a block represent all the child nodes of a parent, with its features and also information about where the child of these are in the data structure
     //a block structure is as follow: N|isLeaf|BlockParentId|p|F0...FN|C0W0 ... CNWN..
-    //N :16 bits : number of nodes in this block. Must be <=branching factor k. If N<k, then the block has empty spaces since block size is fixed
-    //isLeaf:16 bit indicating if all nodes in this block are leaf or not
+    //N: 16-bits number of nodes in this block. Must be <= branching factor k. If N<k, then the block has empty spaces since block size is fixed
+    //isLeaf: 16 bit indicating if all nodes in this block are leaf or not
     //BlockParentId:31: id of the parent
     //p :possible offset so that Fi is aligned
     //Fi feature of the node i. it is aligned and padding added to the end so that F(i+1) is also aligned
     //CiWi are the so called block_node_info (see structure up)
     //Ci : either if the node is leaf (msb is set to 1) or not. If not leaf, the remaining 31 bits is the block where its children are. Else, it is the index of the feature that it represent
-    //Wi: float value empkoyed to know the weight of a leaf node (employed in cases of bagofwords)
+    //Wi: float value employed to know the weight of a leaf node (employed in cases of bagofwords)
     struct Block{
         Block(char * bsptr,uint64_t ds,uint64_t ds_wp,uint64_t fo,uint64_t co):_blockstart(bsptr),_desc_size_bytes(ds),_desc_size_bytes_wp(ds_wp),_feature_off_start(fo),_child_off_start(co){}
         Block(uint64_t ds,uint64_t ds_wp,uint64_t fo,uint64_t co):_desc_size_bytes(ds),_desc_size_bytes_wp(ds_wp),_feature_off_start(fo),_child_off_start(co){}
