@@ -13,8 +13,9 @@
 
 // OpenCV
 #include <opencv2/core/core.hpp>
-#include <opencv2/highgui/highgui.hpp>
 #include <opencv2/features2d/features2d.hpp>
+#include <opencv2/highgui/highgui.hpp>
+#include <opencv2/imgcodecs/imgcodecs.hpp>
 #ifdef USE_CONTRIB
 #include <opencv2/xfeatures2d/nonfree.hpp>
 #include <opencv2/xfeatures2d.hpp>
@@ -56,10 +57,14 @@ std::vector<cv::Mat> loadFeatures(std::vector<string> path_to_images, string des
 
   cout << "STARTING FEATURE EXTRACTION" << endl;
   for (size_t i = 0; i < path_to_images.size(); ++i) {
+    if (path_to_images[i][path_to_images[i].size() - 1] == '.') {
+      continue;
+    }
     std::vector<cv::KeyPoint> keypoints;
     cv::Mat descriptors;
+
     std::cout << "Reading image: " << path_to_images[i] << std::endl;
-    cv::Mat image = cv::imread(path_to_images[i], 0);
+    cv::Mat image = cv::imread(path_to_images[i], cv::ImreadModes::IMREAD_GRAYSCALE);
     if (image.empty()) {
       std::cerr << "Could not open image: " << path_to_images[i] << std::endl;
       continue;
@@ -117,9 +122,11 @@ int main(int argc, char ** argv)
   try {
     CmdLineParser cml(argc, argv);
     if (cml["-h"] || argc < 4) {
-      std::cerr <<
-        "Usage: descriptor_name output dir_with_images \n\t descriptors: brisk, surf, orb(default), akaze(only if using opencv 3)"
-                << std::endl;
+      std::cerr
+        << "Usage:\n"
+        << "\tfbow_create_voc_step0 descriptor_name output dir_with_images\n"
+        << "\tdescriptors: brisk, surf, orb (default), akaze (only if using opencv 3)"
+        << std::endl;
       exit(EXIT_FAILURE);
     }
 
