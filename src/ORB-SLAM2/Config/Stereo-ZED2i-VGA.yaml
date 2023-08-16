@@ -79,6 +79,7 @@ ORBextractor.edgeThreshold: 19
 #--------------------------------------------------------------------------------------------
 # Loop Closing parameters
 #--------------------------------------------------------------------------------------------
+# Covisibility consistency threshold
 # For each loop candidate, a consistency check is run against previous loop candidates.
 # Each candidate expands a covisibility group (keyframes connected to the loop
 # candidate in the covisibility graph).
@@ -89,7 +90,7 @@ ORBextractor.edgeThreshold: 19
 LoopClosing.covisibilityConsistencyThreshold: 3
 
 # If the map contains less than a minimum keyframes or less than these keyframes
-# have passed from last loop detection, loop detection fails.
+# have passed from last loop detection, loop detection fails
 # Default: 10
 LoopClosing.minimumKeyFrames: 10
 
@@ -156,9 +157,10 @@ Optimizer.minimumInliersBeforeFail: 10
 #--------------------------------------------------------------------------------------------
 # Tracking parameters
 #--------------------------------------------------------------------------------------------
-# Minimum number of frames to insert keyframes and to check relocalisation
+# Minimum number of frames after which to insert keyframes and to check relocalisation
+# This is not the only condition, check Tracking.cc::NeedNewKeyFrame.
 # Default: 0
-Tracking.minFrames: 0
+Tracking.minFrames: 15
 
 # An ORB matcher is used with the following NN ratio for tracking the reference keyframe
 # Default: 0.7
@@ -218,8 +220,8 @@ Tracking.localMapTrackingThreshold2: 50
 # Default: 100
 Tracking.newKeyframeThreshold: 100
 
-# The map points are projected into the frame and if the cosine between the last en current viewing
-# angle is smaller then the following delta, then it is used
+# The map points are projected into the frame and if the cosine between the last and current viewing
+# angle is smaller than the following delta, then it is used
 # Default: 0.5
 Tracking.cosineDelta: 0.5
 
@@ -236,7 +238,7 @@ Tracking.RGBDSearchingRadiusThreshold: 3
 # Default: 5
 Tracking.searchingByProjectionThreshold: 5
 
-# If less than the following limit keyframes that observe a map point are included
+# If less keyframes that observe a map point than the following limit are included
 # in the local map, then it is filled up to this limit using keyframes
 # that are neighbors to already-included keyframes
 # Default: 80
@@ -247,7 +249,7 @@ Tracking.keyframesLimit: 80
 Tracking.relocalizationNnRatioOrbMatcher: 0.75
 
 # If more than the following matches are found between the local frame and one
-# of the keyframes, this keyframe is considered a loop candidate
+# of the keyframes, this keyframe is considered a candidate for relocalization
 # Default: 15
 Tracking.keyframeCandidateThreshold: 15
 
