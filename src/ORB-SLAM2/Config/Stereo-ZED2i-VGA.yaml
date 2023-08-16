@@ -150,9 +150,30 @@ Optimizer.additionalIterations: 5
 # Default: 5
 Optimizer.additionalIterationsNoOutliers: 5
 
+# Number of additional Local Bundle Adjustment iterations without outliers
+# Default: 10
+Optimizer.additionalLBAIterationsNoOutliers: 10
+
 # Minimum number of inliers left before failing whole optimization
 # Default: 10
 Optimizer.minimumInliersBeforeFail: 10
+
+# Maximum Local Bundle Adjustment iterations
+# Default: 5
+Optimizer.lbaIterations: 5
+
+# Maximum Global Bundle Adjustment iterations
+# Default: 10
+Optimizer.gbaIterations: 10
+
+# g2o's optimizer verbose mode
+# WARNING: Some of these might generate a gazillion of logs!
+# Default: false
+Optimizer.gbaVerbose: true
+Optimizer.lbaVerbose: false
+Optimizer.poseVerbose: false
+Optimizer.essentialGraphVerbose: false
+Optimizer.sim3Verbose: false
 
 #--------------------------------------------------------------------------------------------
 # Tracking parameters

@@ -49,7 +49,7 @@ void LocalMapping::Run()
 {
     mbFinished = false;
 
-    while(1)
+    while (1)
     {
         // Tracking will see that Local Mapping is busy
         SetAcceptKeyFrames(false);
@@ -66,7 +66,7 @@ void LocalMapping::Run()
             // Triangulate new MapPoints
             CreateNewMapPoints();
 
-            if(!CheckNewKeyFrames())
+            if (!CheckNewKeyFrames())
             {
                 // Find more matches in neighbor keyframes and fuse point duplications
                 SearchInNeighbors();
@@ -74,11 +74,11 @@ void LocalMapping::Run()
 
             mbAbortBA = false;
 
-            if(!CheckNewKeyFrames() && !stopRequested())
+            if (!CheckNewKeyFrames() && !stopRequested())
             {
                 // Local BA
                 if(mpMap->KeyFramesInMap()>2)
-                    mpOptimizer->LocalBundleAdjustment(mpCurrentKeyFrame,&mbAbortBA, mpMap);
+                    mpOptimizer->LocalBundleAdjustment(mpCurrentKeyFrame, &mbAbortBA, mpMap);
 
                 // Check redundant local Keyframes
                 KeyFrameCulling();
@@ -86,10 +86,10 @@ void LocalMapping::Run()
 
             mpLoopCloser->InsertKeyFrame(mpCurrentKeyFrame);
         }
-        else if(Stop())
+        else if (Stop())
         {
             // Safe area to stop
-            while(isStopped() && !CheckFinish())
+            while (isStopped() && !CheckFinish())
             {
                 std::this_thread::sleep_for(std::chrono::microseconds(3000));
             }
@@ -102,7 +102,7 @@ void LocalMapping::Run()
         // Tracking will see that Local Mapping is busy
         SetAcceptKeyFrames(true);
 
-        if(CheckFinish())
+        if (CheckFinish())
             break;
 
         std::this_thread::sleep_for(std::chrono::microseconds(3000));

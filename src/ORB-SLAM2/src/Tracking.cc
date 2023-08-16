@@ -747,9 +747,8 @@ void Tracking::CreateInitialMapMonocular()
         if(mvIniMatches[i]<0)
             continue;
 
-        // Create MapPoint.
+        // Create MapPoint
         cv::Mat worldPos(mvIniP3D[i]);
-
         MapPoint* pMP = new MapPoint(worldPos,pKFcur,mpMap);
 
         pKFini->AddMapPoint(pMP,i);
@@ -761,28 +760,27 @@ void Tracking::CreateInitialMapMonocular()
         pMP->ComputeDistinctiveDescriptors();
         pMP->UpdateNormalAndDepth();
 
-        // Fill Current Frame structure
+        // Fill current Frame structure
         mCurrentFrame.mvpMapPoints[mvIniMatches[i]] = pMP;
         mCurrentFrame.mvbOutlier[mvIniMatches[i]] = false;
 
-        // Add to Map
+        // Add to map
         mpMap->AddMapPoint(pMP);
     }
 
-    // Update Connections
+    // Update connections
     pKFini->UpdateConnections();
     pKFcur->UpdateConnections();
 
-    // Bundle Adjustment
-    cout << "New Map created with " << mpMap->MapPointsInMap() << " points" << endl;
-
-    mpOptimizer->GlobalBundleAdjustemnt(mpMap, 20);
+    // Do first Bundle Adjustment
+    cout << "New map created with " << mpMap->MapPointsInMap() << " points" << endl;
+    mpOptimizer->GlobalBundleAdjustemnt(mpMap);
 
     // Set median depth to 1
     float medianDepth = pKFini->ComputeSceneMedianDepth(2);
     float invMedianDepth = 1.0f/medianDepth;
 
-    if(medianDepth<0 || pKFcur->TrackedMapPoints(1)<100)
+    if (medianDepth < 0 || pKFcur->TrackedMapPoints(1) < 100)
     {
         cout << "Wrong initialization, resetting..." << endl;
         Reset();

@@ -608,9 +608,9 @@ void LoopClosing::CorrectLoop()
     mpThreadGBA = new thread(&LoopClosing::RunGlobalBundleAdjustment, this, mpCurrentKF->mnId);
 
     // Loop closed. Release Local Mapping.
-    mpLocalMapper->Release();    
+    mpLocalMapper->Release();
 
-    mLastLoopKFid = mpCurrentKF->mnId;   
+    mLastLoopKFid = mpCurrentKF->mnId;
 }
 
 void LoopClosing::SearchAndFuse(const KeyFrameAndPose &CorrectedPosesMap)
@@ -678,18 +678,18 @@ void LoopClosing::RunGlobalBundleAdjustment(unsigned long nLoopKF)
     std::chrono::steady_clock::time_point gba_begin = std::chrono::steady_clock::now();
 
     int idx =  mnFullBAIdx;
-    mpOptimizer->GlobalBundleAdjustemnt(mpMap, 10, &mbStopGBA, nLoopKF, false);
+    mpOptimizer->GlobalBundleAdjustemnt(mpMap, &mbStopGBA, nLoopKF, false);
 
     // Update all MapPoints and KeyFrames
     // Local Mapping was active during BA, that means that there might be new keyframes
     // not included in the Global BA and they are not consistent with the updated map.
-    // We need to propagate the correction through the spanning tree
+    // We need to propagate the correction through the spanning tree.
     {
         unique_lock<mutex> lock(mMutexGBA);
-        if(idx!=mnFullBAIdx)
+        if (idx!=mnFullBAIdx)
             return;
 
-        if(!mbStopGBA)
+        if (!mbStopGBA)
         {
             std::chrono::steady_clock::time_point gba_end = std::chrono::steady_clock::now();
             cout << "Global Bundle Adjustment finished (" << std::chrono::duration_cast<std::chrono::microseconds>(gba_end - gba_begin).count() << " us)" << endl;
@@ -698,12 +698,12 @@ void LoopClosing::RunGlobalBundleAdjustment(unsigned long nLoopKF)
 
             // Wait until Local Mapping has effectively stopped
             mpLocalMapper->RequestStop();
-            while(!mpLocalMapper->isStopped() && !mpLocalMapper->isFinished())
+            while (!mpLocalMapper->isStopped() && !mpLocalMapper->isFinished())
             {
                 std::this_thread::sleep_for(std::chrono::microseconds(1000));
             }
 
-            // Get Map Mutex
+            // Get map mutex
             unique_lock<mutex> lock(mpMap->mMutexMapUpdate);
 
             // Correct keyframes starting at map first keyframe
@@ -767,7 +767,7 @@ void LoopClosing::RunGlobalBundleAdjustment(unsigned long nLoopKF)
 
                     pMP->SetWorldPos(Rwc*Xc+twc);
                 }
-            }            
+            }
 
             mpMap->InformNewBigChange();
 
