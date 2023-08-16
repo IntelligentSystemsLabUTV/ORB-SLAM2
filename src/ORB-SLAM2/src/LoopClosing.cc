@@ -88,17 +88,17 @@ void LoopClosing::Run()
 {
     mbFinished = false;
 
-    while(1)
+    while (1)
     {
         // Check if there are keyframes in the queue
-        if(CheckNewKeyFrames())
+        if (CheckNewKeyFrames())
         {
             // Detect loop candidates and check covisibility consistency
-            if(DetectLoop())
+            if (DetectLoop())
             {
                // Compute similarity transformation [sR|t]
                // In the stereo/RGBD case s=1
-               if(ComputeSim3())
+               if (ComputeSim3())
                {
                    // Perform loop fusion and pose graph optimization
                    CorrectLoop();
@@ -108,15 +108,35 @@ void LoopClosing::Run()
 
         ResetIfRequested();
 
-        if(CheckFinish())
+        if (CheckFinish())
             break;
 
         std::this_thread::sleep_for(std::chrono::microseconds(5000));
     }
 
+    // If a Global Bundle Adjustment is running, abort it
+    if (isRunningGBA())
+    {
+        {
+            unique_lock<mutex> lock(mMutexGBA);
+            mbStopGBA = true;
+        }
+
+        mnFullBAIdx++;
+
+        if (mpThreadGBA)
+        {
+            mpThreadGBA->join();
+            delete mpThreadGBA;
+        }
+
+        mbRunningGBA = false;
+        mbFinishedGBA = false;
+        mbStopGBA = false;
+    }
+
     SetFinish();
 }
-
 
 void LoopClosing::InsertKeyFrame(KeyFrame *pKF)
 {
@@ -439,22 +459,28 @@ void LoopClosing::CorrectLoop()
     mpLocalMapper->RequestStop();
 
     // If a Global Bundle Adjustment is running, abort it
-    if(isRunningGBA())
+    if (isRunningGBA())
     {
-        unique_lock<mutex> lock(mMutexGBA);
-        mbStopGBA = true;
+        {
+            unique_lock<mutex> lock(mMutexGBA);
+            mbStopGBA = true;
+        }
 
         mnFullBAIdx++;
 
-        if(mpThreadGBA)
+        if (mpThreadGBA)
         {
-            mpThreadGBA->detach();
+            mpThreadGBA->join();
             delete mpThreadGBA;
         }
+
+        mbRunningGBA = false;
+        mbFinishedGBA = false;
+        mbStopGBA = false;
     }
 
     // Wait until Local Mapping has effectively stopped
-    while(!mpLocalMapper->isStopped())
+    while (!mpLocalMapper->isStopped())
     {
         std::this_thread::sleep_for(std::chrono::microseconds(1000));
     }
@@ -607,7 +633,7 @@ void LoopClosing::CorrectLoop()
     mbStopGBA = false;
     mpThreadGBA = new thread(&LoopClosing::RunGlobalBundleAdjustment, this, mpCurrentKF->mnId);
 
-    // Loop closed. Release Local Mapping.
+    // Release Local Mapping
     mpLocalMapper->Release();
 
     mLastLoopKFid = mpCurrentKF->mnId;
@@ -677,7 +703,7 @@ void LoopClosing::RunGlobalBundleAdjustment(unsigned long nLoopKF)
 
     std::chrono::steady_clock::time_point gba_begin = std::chrono::steady_clock::now();
 
-    int idx =  mnFullBAIdx;
+    int idx = mnFullBAIdx;
     mpOptimizer->GlobalBundleAdjustemnt(mpMap, &mbStopGBA, nLoopKF, false);
 
     // Update all MapPoints and KeyFrames
@@ -686,11 +712,11 @@ void LoopClosing::RunGlobalBundleAdjustment(unsigned long nLoopKF)
     // We need to propagate the correction through the spanning tree.
     {
         unique_lock<mutex> lock(mMutexGBA);
-        if (idx!=mnFullBAIdx)
-            return;
 
-        if (!mbStopGBA)
-        {
+        if (idx != mnFullBAIdx || mbStopGBA) {
+            cout << "Global Bundle Adjustment aborted" << endl;
+            return;
+        } else {
             std::chrono::steady_clock::time_point gba_end = std::chrono::steady_clock::now();
             cout << "Global Bundle Adjustment finished (" << std::chrono::duration_cast<std::chrono::microseconds>(gba_end - gba_begin).count() << " us)" << endl;
             cout << "Updating map..." << endl;
@@ -775,10 +801,10 @@ void LoopClosing::RunGlobalBundleAdjustment(unsigned long nLoopKF)
 
             std::chrono::steady_clock::time_point map_update_end = std::chrono::steady_clock::now();
             cout << "Map updated! (" << std::chrono::duration_cast<std::chrono::microseconds>(map_update_end - map_update_begin).count() << " us)" << endl;
-        }
 
-        mbFinishedGBA = true;
-        mbRunningGBA = false;
+            mbFinishedGBA = true;
+            mbRunningGBA = false;
+        }
     }
 }
 

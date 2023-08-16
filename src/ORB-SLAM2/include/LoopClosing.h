@@ -59,7 +59,7 @@ public:
 
   void SetLocalMapper(LocalMapping* pLocalMapper);
 
-  // Main function
+  // Main routine
   void Run();
 
   void InsertKeyFrame(KeyFrame *pKF);

@@ -119,7 +119,6 @@ void Optimizer::GlobalBundleAdjustemnt(Map* pMap, bool* pbStopFlag, const unsign
     BundleAdjustment(vpKFs, vpMP, mMaxGBAIterations, pbStopFlag, nLoopKF, bRobust);
 }
 
-
 void Optimizer::BundleAdjustment(const vector<KeyFrame *> &vpKFs, const vector<MapPoint *> &vpMP,
                                  int nIterations, bool* pbStopFlag, const unsigned long nLoopKF, const bool bRobust)
 {
@@ -136,7 +135,7 @@ void Optimizer::BundleAdjustment(const vector<KeyFrame *> &vpKFs, const vector<M
     g2o::OptimizationAlgorithmLevenberg* solver = new g2o::OptimizationAlgorithmLevenberg(solver_ptr);
     optimizer.setAlgorithm(solver);
 
-    if(pbStopFlag)
+    if (pbStopFlag)
         optimizer.setForceStopFlag(pbStopFlag);
 
     long unsigned int maxKFid = 0;
@@ -160,11 +159,11 @@ void Optimizer::BundleAdjustment(const vector<KeyFrame *> &vpKFs, const vector<M
     const float thHuber3D = m3DHuberThreshold;
 
     // Set MapPoint vertices
-    for(size_t i=0; i<vpMP.size(); i++)
+    for (size_t i = 0; i < vpMP.size(); i++)
     {
         MapPoint* pMP = vpMP[i];
 
-        if(pMP->isBad())
+        if (pMP->isBad())
             continue;
         g2o::VertexSBAPointXYZ* vPoint = new g2o::VertexSBAPointXYZ();
         vPoint->setEstimate(Converter::toVector3d(pMP->GetWorldPos()));
@@ -247,7 +246,7 @@ void Optimizer::BundleAdjustment(const vector<KeyFrame *> &vpKFs, const vector<M
             }
         }
 
-        if(nEdges==0)
+        if (nEdges == 0)
         {
             optimizer.removeVertex(vPoint);
             vbNotIncludedMP[i]=true;
@@ -263,8 +262,10 @@ void Optimizer::BundleAdjustment(const vector<KeyFrame *> &vpKFs, const vector<M
     optimizer.setVerbose(bGBAVerbose);
     optimizer.optimize(nIterations);
 
-    // Recover optimized data
+    if (pbStopFlag && *pbStopFlag)
+        return;
 
+    // Recover optimized data
     // Keyframes
     for(size_t i=0; i<vpKFs.size(); i++)
     {
@@ -279,7 +280,7 @@ void Optimizer::BundleAdjustment(const vector<KeyFrame *> &vpKFs, const vector<M
         }
         else
         {
-            pKF->mTcwGBA.create(4,4,CV_32F);
+            pKF->mTcwGBA.create(4, 4, CV_32F);
             Converter::toCvMat(SE3quat).copyTo(pKF->mTcwGBA);
             pKF->mnBAGlobalForKF = nLoopKF;
         }
