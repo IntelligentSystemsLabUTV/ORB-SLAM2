@@ -93,35 +93,34 @@ System::System(const string &strVocFile, const string &strSettingsFile, const eS
     mpFrameDrawer = new FrameDrawer(mpMap, bReuseMap);
     mpMapDrawer = new MapDrawer(mpMap, strSettingsFile);
 
-    // Initialize the Tracking thread
-    // (it will live in the main thread of execution, the one that called this constructor)
+    // Initialize the Tracking module
     mpTracker = new Tracking(this, mpFBOWVocabulary, mpFrameDrawer, mpMapDrawer, mpMap, mpKeyFrameDatabase, strSettingsFile, mSensor, bReuseMap);
 
-    // Initialize the Local Mapping thread and launch
+    // Initialize the Local Mapping module
     mpLocalMapper = new LocalMapping(mpMap, mSensor == MONOCULAR, strSettingsFile);
 
-    // Initialize the Loop Closing thread and launch
-    mptLocalMapping = new thread(&ORB_SLAM2::LocalMapping::Run, mpLocalMapper);
+    // Initialize the Loop Closing module
     mpLoopCloser = new LoopClosing(mpMap, mpKeyFrameDatabase, mpFBOWVocabulary, mSensor != MONOCULAR, strSettingsFile);
-    mptLoopClosing = new thread(&ORB_SLAM2::LoopClosing::Run, mpLoopCloser);
 
-    // Initialize the Viewer thread and launch
-    if(bUseViewer)
-    {
+    // Initialize the Viewer module
+    if (bUseViewer) {
         mpViewer = new Viewer(this, mpFrameDrawer, mpMapDrawer, mpTracker, strSettingsFile, bReuseMap);
-        mptViewer = new thread(&Viewer::Run, mpViewer);
         mpTracker->SetViewer(mpViewer);
     }
 
-    // Set pointers between threads
+    // Set pointers between modules
     mpTracker->SetLocalMapper(mpLocalMapper);
     mpTracker->SetLoopClosing(mpLoopCloser);
-
     mpLocalMapper->SetTracker(mpTracker);
     mpLocalMapper->SetLoopCloser(mpLoopCloser);
-
     mpLoopCloser->SetTracker(mpTracker);
     mpLoopCloser->SetLocalMapper(mpLocalMapper);
+
+    mptLocalMapping = new thread(&ORB_SLAM2::LocalMapping::Run, mpLocalMapper);
+    mptLoopClosing = new thread(&ORB_SLAM2::LoopClosing::Run, mpLoopCloser);
+    if (bUseViewer) {
+        mptViewer = new thread(&Viewer::Run, mpViewer);
+    }
 }
 
 HPose System::TrackStereo(const cv::Mat &imLeft, const cv::Mat &imRight, const double &timestamp)
