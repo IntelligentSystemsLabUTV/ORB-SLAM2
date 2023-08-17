@@ -703,27 +703,25 @@ cv::Mat System::GetCurrentCovarianceMatrix(bool rotationInverse)
     for (size_t i = 0; i < trackedPoints.size(); i++)
     {
       MapPoint* pMP = trackedPoints[i];
-      if (pMP)
+      if (pMP && !pMP->isBad())
         featPos.push_back(pMP->GetWorldPos());
     }
 
-    cv::Mat cameraPose = GetCurrentCameraPose();
+    // Get current camera pose
+    cv::Mat cameraPose = cv::Mat::eye(4, 4, CV_32F);
+    cv::Mat Twc = GetCurrentCameraPose();
+    cv::Mat Rwc = Twc.rowRange(0, 3).colRange(0, 3);
+    cv::Mat Pwc = -Rwc.t() * Twc.rowRange(0, 3).col(3);
+    Rwc.copyTo(cameraPose.rowRange(0, 3).colRange(0, 3));
+    Pwc.copyTo(cameraPose.rowRange(0, 3).col(3));
 
-    cv::Mat lambda = cv::Mat::zeros(2, 2, CV_32F);
-    cv::Mat factor = cv::Mat::zeros(6, 6, CV_32F);
+    // Initialize algorithm data
+    cv::Mat factor = cv::Mat::zeros(6, 6, CV_32F); // Iterative solution
+    cv::Mat lambda = cv::Mat::zeros(2, 2, CV_32F); // Noise matrix
     lambda.at<float>(0, 0) = 1.0f / (fx*fx);
     lambda.at<float>(1, 1) = 1.0f / (fy*fy);
     cv::Mat Rcg = cv::Mat::zeros(3, 3, CV_32F); // Rotation from Camera pose to Global frame
-    Rcg.at<float>(0, 0) = cameraPose.at<float>(0, 0);
-    Rcg.at<float>(0, 1) = cameraPose.at<float>(0, 1);
-    Rcg.at<float>(0, 2) = cameraPose.at<float>(0, 2);
-    Rcg.at<float>(1, 0) = cameraPose.at<float>(1, 0);
-    Rcg.at<float>(1, 1) = cameraPose.at<float>(1, 1);
-    Rcg.at<float>(1, 2) = cameraPose.at<float>(1, 2);
-    Rcg.at<float>(2, 0) = cameraPose.at<float>(2, 0);
-    Rcg.at<float>(2, 1) = cameraPose.at<float>(2, 1);
-    Rcg.at<float>(2, 2) = cameraPose.at<float>(2, 2);
-
+    cameraPose.rowRange(0, 3).colRange(0, 3).copyTo(Rcg);
     if (rotationInverse) {
       Rcg = Rcg.inv();
     }
@@ -732,8 +730,8 @@ cv::Mat System::GetCurrentCovarianceMatrix(bool rotationInverse)
     {
       cv::Mat H1 = cv::Mat::zeros(2, 3, CV_32F);
       cv::Mat H2 = cv::Mat::zeros(3, 6, CV_32F);
-      cv::Mat Pcf = cv::Mat::zeros(3, 1, CV_32F); // Pose of feature in respect to Camera frame
-      cv::Mat Pgc = cv::Mat::zeros(3, 1, CV_32F); // Pose of camera in respect to Global frame
+      cv::Mat Pcf = cv::Mat::zeros(3, 1, CV_32F); // Pose of feature w.r.t. Camera frame
+      cv::Mat Pgc = cv::Mat::zeros(3, 1, CV_32F); // Pose of camera w.r.t. Global frame
       float a, b;
       Pgc.at<float>(0) = cameraPose.at<float>(0, 3);
       Pgc.at<float>(1) = cameraPose.at<float>(1, 3);
@@ -741,13 +739,16 @@ cv::Mat System::GetCurrentCovarianceMatrix(bool rotationInverse)
 
       Pcf = Rcg * (featPos[j] - Pgc);
 
-      if (Pcf.at<float>(2) == 0.0f) {
-        a = 1000000.0f;
-        b = 1000000000000.0f;
+      // Prevent ill-conditioned divisions
+      if (abs(Pcf.at<float>(2)) < 1e-6f) {
+        float sign = Pcf.at<float>(2) < 0.0f ? -1.0f : 1.0f;
+        a = sign * 1000000.0f;
+        b = sign * 1000000000000.0f;
       } else {
         a = 1.0f / Pcf.at<float>(2);
         b = 1.0f / (Pcf.at<float>(2) * Pcf.at<float>(2));
       }
+
       H1.at<float>(0, 0) = a;
       H1.at<float>(0, 2) = -Pcf.at<float>(0) * b;
       H1.at<float>(1, 1) = a;
@@ -795,12 +796,14 @@ cv::Mat System::GetCurrentCovarianceMatrix(bool rotationInverse)
 
     // We need to purge the spurious negative eigenvalues: only consider variances, and
     // set to a small value the negative ones (it is taken as the default for the
-    // robot_localization's EKF)
+    // robot_localization's EKF), as well as saturate the positive ones
     Eigen::Matrix<float, 6, 6> cov_mat_spurious = cov_cv_to_eigen(cov_mat_spurious_cv);
     Eigen::Matrix<float, 6, 6> L = cov_mat_spurious.diagonal().asDiagonal();
     for (int i = 0; i < 6; i++) {
       if (L(i, i) < 0.0f) {
-        L(i, i) = float(1e-6);
+        L(i, i) = float(1e-6f);
+      } else if (L(i, i) > 1.0f) {
+        L(i, i) = 1.0f;
       }
     }
     return cov_eigen_to_cv(L);
