@@ -63,6 +63,9 @@ LoopClosing::LoopClosing(Map *pMap, KeyFrameDatabase *pDB, fbow::Vocabulary *pFb
   int _mDetectionThreshold = fSettings["LoopClosing.detectionThreshold"];
   mDetectionThreshold = (_mDetectionThreshold == 0) ? 40 : _mDetectionThreshold;
 
+  int _loopRate = fSettings["LoopClosing.loopRate"];
+  loopRate = _loopRate == 0 ? 5000 : _loopRate;
+
   cout << endl << "Loop Closing parameters:" << endl;
   cout << "- " << "CovisibilityConsistencyTh: " << mnCovisibilityConsistencyTh << endl;
   cout << "- " << "MinimumKeyframes: " << mMinimumKeyframes << endl;
@@ -72,6 +75,7 @@ LoopClosing::LoopClosing(Map *pMap, KeyFrameDatabase *pDB, fbow::Vocabulary *pFb
   cout << "- " << "RansacMinimalInliers: " << mRansacMinimalInliers << endl;
   cout << "- " << "RansacMaxIterations: " << mRansacMaxIterations << endl;
   cout << "- " << "DetectionThreshold: " << mDetectionThreshold << endl;
+  cout << "- " << "LoopRate: " << loopRate << endl;
 }
 
 LoopClosing::~LoopClosing()
@@ -120,7 +124,7 @@ void LoopClosing::Run()
         if (CheckFinish())
             break;
 
-        std::this_thread::sleep_for(std::chrono::microseconds(5000));
+        std::this_thread::sleep_for(std::chrono::microseconds(loopRate));
     }
 
     // If a Global Bundle Adjustment is running, abort it

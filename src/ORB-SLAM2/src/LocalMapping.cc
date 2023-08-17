@@ -32,7 +32,14 @@ LocalMapping::LocalMapping(Map *pMap, const float bMonocular, const string &strS
     mbMonocular(bMonocular), mbResetRequested(false), mbFinishRequested(false), mbFinished(true), mpMap(pMap),
     mbAbortBA(false), mbStopped(false), mbStopRequested(false), mbNotStop(false), mbAcceptKeyFrames(true)
 {
-  mpOptimizer = new Optimizer(strSettingPath);
+    cv::FileStorage fSettings(strSettingPath, cv::FileStorage::READ);
+    mpOptimizer = new Optimizer(strSettingPath);
+
+    int _loopRate = fSettings["LocalMapping.loopRate"];
+    loopRate = _loopRate == 0 ? 3000 : _loopRate;
+
+    cout << endl << "Local Mapping parameters:" << endl;
+    cout << "- LoopRate: " << loopRate << endl;
 }
 
 LocalMapping::~LocalMapping()
@@ -100,7 +107,7 @@ void LocalMapping::Run()
             // Safe area to stop
             while (isStopped() && !CheckFinish())
             {
-                std::this_thread::sleep_for(std::chrono::microseconds(3000));
+                std::this_thread::sleep_for(std::chrono::microseconds(loopRate));
             }
             if(CheckFinish())
                 break;

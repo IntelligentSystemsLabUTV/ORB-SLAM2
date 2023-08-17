@@ -149,6 +149,8 @@ protected:
 
   long unsigned int loopCnt;
 
+  int loopRate;
+
   // Variables related to Global Bundle Adjustment
   bool mbRunningGBA;
   bool mbFinishedGBA;

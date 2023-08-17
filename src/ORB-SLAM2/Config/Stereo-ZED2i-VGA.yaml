@@ -115,6 +115,21 @@ LoopClosing.ransacMaxIterations: 300
 # Default: 40
 LoopClosing.detectionThreshold: 40
 
+# Loop Closing thread update period in microseconds
+# This thread must act upon the reception of new KeyFrames, so tune this according to your camera's framerate
+# to avoid wasting CPU cycles.
+# Default: 5000
+LoopClosing.loopRate: 5000
+
+#--------------------------------------------------------------------------------------------
+# Local Mapping parameters
+#--------------------------------------------------------------------------------------------
+# Local Mapping thread update period in microseconds
+# This thread must act upon the reception of new KeyFrames, so tune this according to your camera's framerate
+# to avoid wasting CPU cycles.
+# Default: 3000
+LocalMapping.loopRate: 3000
+
 #--------------------------------------------------------------------------------------------
 # Optimizer parameters
 #--------------------------------------------------------------------------------------------

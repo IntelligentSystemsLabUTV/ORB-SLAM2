@@ -115,6 +115,8 @@ protected:
 
     std::mutex mMutexNewKFs;
 
+    int loopRate;
+
     bool mbAbortBA;
 
     bool mbStopped;
@@ -126,6 +128,6 @@ protected:
     std::mutex mMutexAccept;
 };
 
-} //namespace ORB_SLAM
+} // namespace ORB_SLAM2
 
 #endif // LOCALMAPPING_H
