@@ -86,6 +86,16 @@ params:
     read_only: false
     var_name: orb2_config_path_
 
+  subscriber_depth:
+    type: integer
+    default_value: 10
+    min_value: 1
+    max_value: 100
+    step: 1
+    description: "Depth of the subscriber queue."
+    constraints: "Changes require system restart."
+    read_only: false
+
   tracking_cpu:
     type: integer
     default_value: 2
