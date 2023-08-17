@@ -563,18 +563,18 @@ void Tracking::Track()
             }
         }
 
-        // Reset if the camera get lost soon after initialization
-        if(mState==LOST)
+        // Reset if the camera gets lost soon after initialization
+        if (mState == LOST)
         {
-            if(mpMap->KeyFramesInMap()<=5)
+            if (mpMap->KeyFramesInMap() <= 5)
             {
-                cout << "Track lost soon after initialisation, reseting..." << endl;
+                cout << "Track lost soon after initialisation, resetting..." << endl;
                 mpSystem->Reset();
                 return;
             }
         }
 
-        if(!mCurrentFrame.mpReferenceKF)
+        if (!mCurrentFrame.mpReferenceKF)
             mCurrentFrame.mpReferenceKF = mpReferenceKF;
 
         mLastFrame = Frame(mCurrentFrame);
@@ -1598,40 +1598,36 @@ bool Tracking::Relocalization()
 void Tracking::Reset()
 {
 
-    cout << "System Resetting" << endl;
-    if(mpViewer)
+    cout << "System resetting" << endl;
+    if (mpViewer)
     {
         mpViewer->RequestStop();
-        while(!mpViewer->isStopped())
+        while (!mpViewer->isStopped())
         {
             std::this_thread::sleep_for(std::chrono::microseconds(3000));
         }
     }
 
     // Reset Local Mapping
-    cout << "Resetting Local Mapper...";
     mpLocalMapper->RequestReset();
-    cout << " done" << endl;
+    cout << "Local Mapping reset" << endl;
 
     // Reset Loop Closing
-    cout << "Resetting Loop Closing...";
     mpLoopClosing->RequestReset();
-    cout << " done" << endl;
+    cout << "Loop Closing reset" << endl;
 
     // Clear BoW Database
-    cout << "Resetting Database...";
     mpKeyFrameDB->clear();
+    cout << "KeyFrame Database reset" << endl;
 
-    cout << " done" << endl;
-
-    // Clear Map (this erase MapPoints and KeyFrames)
+    // Clear Map (this erases MapPoints and KeyFrames)
     mpMap->clear();
 
     KeyFrame::nNextId = 0;
     Frame::nNextId = 0;
     mState = NO_IMAGES_YET;
 
-    if(mpInitializer)
+    if (mpInitializer)
     {
         delete mpInitializer;
         mpInitializer = static_cast<Initializer*>(NULL);
@@ -1642,7 +1638,7 @@ void Tracking::Reset()
     mlFrameTimes.clear();
     mlbLost.clear();
 
-    if(mpViewer)
+    if (mpViewer)
         mpViewer->Release();
 }
 
@@ -1684,6 +1680,4 @@ void Tracking::InformOnlyTracking(const bool &flag)
     mbOnlyTracking = flag;
 }
 
-
-
-} //namespace ORB_SLAM
+} // namespace ORB_SLAM2

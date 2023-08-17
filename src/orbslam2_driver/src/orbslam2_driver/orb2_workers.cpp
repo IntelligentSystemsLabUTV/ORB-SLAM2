@@ -65,9 +65,27 @@ void ORB_SLAM2DriverNode::orb2_thread_routine()
       }
 
       // Check tracking state
-      if (orb2_->GetTrackingState() != ORB_SLAM2::Tracking::OK) {
-        RCLCPP_ERROR(this->get_logger(), "Tracking lost");
-        continue;
+      switch (orb2_->GetTrackingState()) {
+        case ORB_SLAM2::Tracking::SYSTEM_NOT_READY:
+          RCLCPP_WARN(this->get_logger(), "System not ready");
+          continue;
+        case ORB_SLAM2::Tracking::NO_IMAGES_YET:
+          RCLCPP_WARN(this->get_logger(), "No images yet");
+          continue;
+        case ORB_SLAM2::Tracking::NOT_INITIALIZED:
+          RCLCPP_WARN(this->get_logger(), "Not initialized");
+          continue;
+        case ORB_SLAM2::Tracking::OK:
+          break;
+        case ORB_SLAM2::Tracking::LOST:
+          RCLCPP_ERROR(this->get_logger(), "Tracking lost");
+          continue;
+        default:
+          RCLCPP_FATAL(
+            this->get_logger(),
+            "ORB_SLAM2DriverNode::orb2_thread_routine: Invalid tracking state");
+          throw std::runtime_error(
+                  "ORB_SLAM2DriverNode::orb2_thread_routine: Invalid tracking state");
       }
 
       // Apply initial transformation
