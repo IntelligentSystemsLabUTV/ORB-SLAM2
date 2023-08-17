@@ -21,6 +21,7 @@
 #include <algorithm>
 #include <chrono>
 #include <iomanip>
+#include <stdexcept>
 #include <thread>
 
 #include <pangolin/pangolin.h>
@@ -46,10 +47,10 @@ System::System(const string &strVocFile, const string &strSettingsFile, const eS
 
     // Check settings file
     cv::FileStorage fsSettings(strSettingsFile.c_str(), cv::FileStorage::READ);
-    if(!fsSettings.isOpened())
+    if (!fsSettings.isOpened())
     {
-       cerr << "Failed to open settings file at: " << strSettingsFile << endl;
-       exit(-1);
+       cerr << "Failed to open settings file: " << strSettingsFile << endl;
+       throw std::runtime_error("Failed to open settings file: " + strSettingsFile);
     }
 
     cv::FileNode mapfilen = fsSettings["Map.mapfile"];
@@ -60,36 +61,35 @@ System::System(const string &strVocFile, const string &strSettingsFile, const eS
     }
     else if (is_save_map)
     {
-        cerr << "Save map is on but no file has been specified in yaml configuration." << endl;
-        cerr << "Set Map.mapfile: <filename> in the yaml file" << endl;
-        exit(-1);
+        cerr << "ORB_SLAM2::System::System: No map file has been specified in configuration file" << endl;
+        throw std::runtime_error("ORB_SLAM2::System::System: No map file has been specified in configuration file");
     }
 
     // Load FBoW Vocabulary
-    cout << endl << "Loading FBoW Vocabulary... ";
+    cout << endl << "Loading FBoW vocabulary..." << std::flush;
     mpFBOWVocabulary = new fbow::Vocabulary();
     mpFBOWVocabulary->readFromFile(strVocFile);
-    cout << "Vocabulary loaded!" << endl << endl;
+    cout << " done" << endl;
 
     // Set camera parameters
     mCameraFx = fsSettings["Camera.fx"];
     mCameraFy = fsSettings["Camera.fy"];
 
     // Create KeyFrame database and the map
-    if (!mapfile.empty() && LoadMap(mapfile))
-    {
-        bReuseMap = true;
-        std::cout << "Loaded Map" << std::endl;
-        is_save_map = false;
-    }
-    else
-    {
-        std::cout << "Map not loaded" << std::endl;
+    if (!mapfile.empty()) {
+        if (LoadMap(mapfile)) {
+            bReuseMap = true;
+            is_save_map = false;
+        } else {
+            mpKeyFrameDatabase = new KeyFrameDatabase(mpFBOWVocabulary);
+            mpMap = new Map();
+        }
+    } else {
         mpKeyFrameDatabase = new KeyFrameDatabase(mpFBOWVocabulary);
         mpMap = new Map();
     }
 
-    // Create Drawers. These are used by the Viewer
+    // Create Drawers, used by the Viewer
     mpFrameDrawer = new FrameDrawer(mpMap, bReuseMap);
     mpMapDrawer = new MapDrawer(mpMap, strSettingsFile);
 
@@ -126,10 +126,10 @@ System::System(const string &strVocFile, const string &strSettingsFile, const eS
 
 HPose System::TrackStereo(const cv::Mat &imLeft, const cv::Mat &imRight, const double &timestamp)
 {
-    if(mSensor != STEREO)
+    if (mSensor != STEREO)
     {
-        cerr << "ERROR: you called TrackStereo but input sensor was not set to STEREO." << endl;
-        exit(-1);
+        cerr << "ORB_SLAM2::System::TrackStereo: mode not set to STEREO" << endl;
+        throw std::runtime_error("ORB_SLAM2::System::TrackStereo: mode not set to STEREO");
     }
 
     // Check mode change
@@ -197,10 +197,10 @@ HPose System::TrackStereo(const cv::Mat &imLeft, const cv::Mat &imRight, const d
 
 HPose System::TrackRGBD(const cv::Mat &im, const cv::Mat &depthmap, const double &timestamp)
 {
-    if(mSensor!=RGBD)
+    if (mSensor!=RGBD)
     {
-        cerr << "ERROR: you called TrackRGBD but input sensor was not set to RGBD." << endl;
-        exit(-1);
+        cerr << "ORB_SLAM2::System::TrackRGBD: Mode not set to RGBD" << endl;
+        throw std::runtime_error("ORB_SLAM2::System::TrackRGBD: Mode not set to RGBD");
     }
 
     // Check mode change
@@ -253,10 +253,11 @@ HPose System::TrackRGBD(const cv::Mat &im, const cv::Mat &depthmap, const double
 // Overload of the track RGBD function
 HPose System::TrackIRD(const cv::Mat &im, const cv::Mat &depthmap, const double &timestamp)
 {
-    if(mSensor!=RGBD)
+    if (mSensor != RGBD)
     {
-        cerr << "ERROR: you called TrackIRD but input sensor was not set to RGBD." << endl;
-        exit(-1);
+        // IR-D mode is a variation of RGB-D mode
+        cerr << "ORB_SLAM2::System::TrackIRD: Mode not set to RGBD" << endl;
+        throw std::runtime_error("ORB_SLAM2::System::TrackIRD: Mode not set to RGBD");
     }
 
     // Check mode change
@@ -308,10 +309,10 @@ HPose System::TrackIRD(const cv::Mat &im, const cv::Mat &depthmap, const double 
 
 HPose System::TrackMonocular(const cv::Mat &im, const double &timestamp)
 {
-    if(mSensor != MONOCULAR)
+    if (mSensor != MONOCULAR)
     {
-        cerr << "ERROR: you called TrackMonocular but input sensor was not set to Monocular." << endl;
-        exit(-1);
+        cerr << "ORB_SLAM2::System::TrackMonocular: Mode not set to MONOCULAR" << endl;
+        throw std::runtime_error("ORB_SLAM2::System::TrackMonocular: Mode not set to MONOCULAR");
     }
 
     // Check mode change
@@ -427,7 +428,6 @@ void System::Shutdown()
 
     if (is_save_map)
     {
-        std::cout << "Saving map..." << std::endl;
         SaveMap(mapfile);
     }
 }
@@ -849,37 +849,36 @@ std::vector<Eigen::Vector3f> System::GetMap(bool wait_gba)
   return pointsVec;
 }
 
-void System::SaveMap(const string &filename)
+void System::SaveMap(const string & filename)
 {
     std::ofstream out(filename, std::ios_base::binary);
     if (!out)
     {
-        cerr << "Cannot Write to Mapfile: " << mapfile << std::endl;
-        exit(-1);
+        cerr << "ORB_SLAM2::System::SaveMap: Cannot write to file: " << filename << std::endl;
+        throw std::runtime_error("ORB_SLAM2::System::SaveMap: Cannot write to file: " + filename);
     }
-    cout << "Saving Mapfile: " << mapfile << std::flush;
+    cout << "Saving map to file: " << filename << " ..." << std::flush;
     boost::archive::binary_oarchive oa(out, boost::archive::no_header);
     oa << mpMap;
     oa << mpKeyFrameDatabase;
-    cout << " ...done" << std::endl;
     out.close();
+    cout << " done" << std::endl;
 }
 
 bool System::LoadMap(const string &filename)
 {
     std::ifstream in(filename, std::ios_base::binary);
-    if (!in)
-    {
-        cerr << "Cannot Open Mapfile: " << mapfile << ", Create a new one" << std::endl;
+    if (!in) {
+        cerr << "Cannot open map file: " << mapfile << std::endl;
         return false;
     }
-    cout << "Loading Mapfile: " << mapfile << std::flush;
+    cout << "Loading map from file: " << mapfile << " ..." << std::flush;
     boost::archive::binary_iarchive ia(in, boost::archive::no_header);
     ia >> mpMap;
     ia >> mpKeyFrameDatabase;
     mpKeyFrameDatabase->SetFBOWvocabulary(mpFBOWVocabulary);
-    cout << " ...done" << std::endl;
-    cout << "Map Reconstructing" << flush;
+    cout << " done" << std::endl;
+    cout << "Rebuilding map from archive..." << flush;
     vector<ORB_SLAM2::KeyFrame*> vpKFS = mpMap->GetAllKeyFrames();
     unsigned long mnFrameId = 0;
     for (auto it:vpKFS) {
@@ -889,7 +888,7 @@ bool System::LoadMap(const string &filename)
             mnFrameId = it->mnFrameId;
     }
     Frame::nNextId = mnFrameId;
-    cout << " ...done" << endl;
+    cout << " done" << endl;
     in.close();
     return true;
 }

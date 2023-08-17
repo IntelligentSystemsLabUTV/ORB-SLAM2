@@ -79,6 +79,6 @@ protected:
   std::mutex mMutex;
 };
 
-} //namespace ORB_SLAM
+} // namespace ORB_SLAM2
 
 #endif
