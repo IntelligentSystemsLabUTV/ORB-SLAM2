@@ -25,8 +25,13 @@
 namespace ORB_SLAM2
 {
 
-Map::Map():mnMaxKFid(0),mnBigChangeIdx(0)
+Map::Map()
+: mnMaxKFid(0), mnBigChangeIdx(0)
+{}
+
+Map::~Map()
 {
+    clear(false);
 }
 
 void Map::AddKeyFrame(KeyFrame *pKF)
@@ -115,13 +120,15 @@ long unsigned int Map::GetMaxKFid()
     return mnMaxKFid;
 }
 
-void Map::clear()
+void Map::clear(bool delete_kfs)
 {
     for(set<MapPoint*>::iterator sit=mspMapPoints.begin(), send=mspMapPoints.end(); sit!=send; sit++)
         delete *sit;
 
-    for(set<KeyFrame*>::iterator sit=mspKeyFrames.begin(), send=mspKeyFrames.end(); sit!=send; sit++)
-        delete *sit;
+    if (delete_kfs) {
+        for(set<KeyFrame*>::iterator sit=mspKeyFrames.begin(), send=mspKeyFrames.end(); sit!=send; sit++)
+            delete *sit;
+    }
 
     mspMapPoints.clear();
     mspKeyFrames.clear();

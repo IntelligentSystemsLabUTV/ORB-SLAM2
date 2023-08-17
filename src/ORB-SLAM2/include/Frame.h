@@ -43,6 +43,7 @@ class Frame
 {
 public:
     Frame();
+    ~Frame() {}
 
     // Copy constructor.
     Frame(const Frame &frame);

@@ -55,6 +55,8 @@ public:
 
   LoopClosing(Map* pMap, KeyFrameDatabase* pDB, fbow::Vocabulary* pVoc,const bool bFixScale, const string &strSettingPath);
 
+  ~LoopClosing();
+
   void SetTracker(Tracking* pTracker);
 
   void SetLocalMapper(LocalMapping* pLocalMapper);

@@ -74,6 +74,15 @@ LoopClosing::LoopClosing(Map *pMap, KeyFrameDatabase *pDB, fbow::Vocabulary *pFb
   cout << "- " << "DetectionThreshold: " << mDetectionThreshold << endl;
 }
 
+LoopClosing::~LoopClosing()
+{
+  delete mpOptimizer;
+
+  for (auto kfp : mlpLoopKeyFrameQueue) {
+    delete kfp;
+  }
+}
+
 void LoopClosing::SetTracker(Tracking *pTracker)
 {
     mpTracker = pTracker;

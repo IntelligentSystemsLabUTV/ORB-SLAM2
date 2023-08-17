@@ -274,7 +274,7 @@ void MapDrawer::GetCurrentOpenGLCameraMatrix(pangolin::OpenGlMatrix &M)
 
 void MapDrawer::SetSystemCameraPose(void *mpSystem)
 {
-    if(!mCameraPose.empty()) {
+    if (!mCameraPose.empty()) {
         System* system = (System*) mpSystem;
         cv::Mat Rwc(3, 3, CV_32F);
         cv::Mat twc(3, 1, CV_32F);

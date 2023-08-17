@@ -44,6 +44,7 @@ class KeyFrameDatabase
 public:
 
    KeyFrameDatabase(fbow::Vocabulary *voc);
+   ~KeyFrameDatabase();
 
    void add(KeyFrame *pKF);
 

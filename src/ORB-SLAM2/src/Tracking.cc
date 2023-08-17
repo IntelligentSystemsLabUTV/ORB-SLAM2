@@ -119,11 +119,17 @@ Tracking::Tracking(System *pSys, fbow::Vocabulary* pFbowVoc, FrameDrawer *pFrame
 
     mpORBextractorLeft = new ORBextractor(nFeatures, fScaleFactor, nLevels, fIniThFAST, fMinThFAST, nPatchSize, nHalfPatchSize, nEdgeThreshold);
 
-    if(sensor==System::STEREO)
+    if (sensor == System::STEREO) {
         mpORBextractorRight = new ORBextractor(nFeatures, fScaleFactor, nLevels, fIniThFAST, fMinThFAST, nPatchSize, nHalfPatchSize, nEdgeThreshold);
+    } else {
+        mpORBextractorRight = nullptr;
+    }
 
-    if(sensor==System::MONOCULAR)
+    if (sensor == System::MONOCULAR) {
         mpIniORBextractor = new ORBextractor(2*nFeatures, fScaleFactor, nLevels, fIniThFAST, fMinThFAST, nPatchSize, nHalfPatchSize, nEdgeThreshold);
+    } else {
+        mpIniORBextractor = nullptr;
+    }
 
     cout << endl  << "ORB Extractor Parameters: " << endl;
     cout << "- Number of Features: " << nFeatures << endl;
@@ -239,6 +245,20 @@ Tracking::Tracking(System *pSys, fbow::Vocabulary* pFbowVoc, FrameDrawer *pFrame
     cout << "- " << "PnpSolverRansacMaxIterations: " << mPnpSolverRansacMaxIterations << endl;
     cout << "- " << "PnpSolverRansacMinSet: " << mPnpSolverRansacMinSet << endl;
     cout << "- " << "RansacIterationsRelocalization: " << mRansacIterationsRelocalization << endl;
+}
+
+Tracking::~Tracking()
+{
+  delete mpOptimizer;
+
+  if (mpORBextractorLeft)
+    delete mpORBextractorLeft;
+
+  if (mpORBextractorRight)
+    delete mpORBextractorRight;
+
+  if (mpIniORBextractor)
+    delete mpIniORBextractor;
 }
 
 void Tracking::SetLocalMapper(LocalMapping *pLocalMapper)

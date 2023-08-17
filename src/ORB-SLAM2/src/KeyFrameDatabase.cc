@@ -34,6 +34,20 @@ KeyFrameDatabase::KeyFrameDatabase(fbow::Vocabulary *voc):
     mvInvertedFile.resize(voc->getTotalWords());
 }
 
+KeyFrameDatabase::~KeyFrameDatabase()
+{
+    // Create a list of unique KeyFrame pointers from the inverted file
+    std::set<KeyFrame *> spKFs;
+    for (auto kfl : mvInvertedFile) {
+        for (auto kf : kfl) {
+            auto unique_pair = spKFs.insert(kf);
+            if (unique_pair.second) {
+                delete kf;
+            }
+        }
+    }
+}
+
 void KeyFrameDatabase::add(KeyFrame *pKF)
 {
     unique_lock<mutex> lock(mMutex);

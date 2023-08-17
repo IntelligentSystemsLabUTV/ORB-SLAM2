@@ -34,7 +34,7 @@ namespace ORB_SLAM2
 
 System::System(const string &strVocFile, const string &strSettingsFile, const eSensor sensor,
                const bool bUseViewer, bool is_save_map_, bool replayer_):mSensor(sensor), is_save_map(is_save_map_), replayer(replayer_), mpViewer(static_cast<Viewer*>(NULL)), mbReset(false),
-        mbActivateLocalizationMode(false), mbDeactivateLocalizationMode(false), mCurrCameraPose(cv::Mat::eye(4, 4, CV_32F))
+        mbActivateLocalizationMode(false), mbDeactivateLocalizationMode(false), mCurrCameraPose(cv::Mat::eye(4, 4, CV_32F)), bActive(true)
 {
     cout << "System mode: ";
 
@@ -120,6 +120,45 @@ System::System(const string &strVocFile, const string &strSettingsFile, const eS
     mptLoopClosing = new thread(&ORB_SLAM2::LoopClosing::Run, mpLoopCloser);
     if (bUseViewer) {
         mptViewer = new thread(&Viewer::Run, mpViewer);
+    }
+}
+
+System::~System()
+{
+    // Shutdown ORB-SLAM2 system
+    if (bActive) {
+        Shutdown();
+    }
+
+    // Destroy modules in reverse order
+    if (mpLoopCloser) {
+        delete mpLoopCloser;
+    }
+    if (mpLocalMapper) {
+        delete mpLocalMapper;
+    }
+    if (mpTracker) {
+        delete mpTracker;
+    }
+    if (mpViewer) {
+        delete mpViewer;
+    }
+    if (mpMapDrawer) {
+        delete mpMapDrawer;
+    }
+    if (mpFrameDrawer) {
+        delete mpFrameDrawer;
+    }
+
+    // Destroy local data
+    if (mpKeyFrameDatabase) {
+        delete mpKeyFrameDatabase;
+    }
+    if (mpMap) {
+        delete mpMap;
+    }
+    if (mpFBOWVocabulary) {
+        delete mpFBOWVocabulary;
     }
 }
 
@@ -403,32 +442,48 @@ void System::Shutdown()
 {
     std::cout << "Shutting down VSLAM system" << std::endl;
     mpLocalMapper->RequestFinish();
-    std::cout << "Stopping local mapper" << std::endl;
+    std::cout << "Stopping Local Mapping..." << std::endl;
     mpLoopCloser->RequestFinish();
-    std::cout << "Stopping loop closer" << std::endl;
+    std::cout << "Stopping Loop Closing..." << std::endl;
     if (mpViewer)
     {
         mpViewer->RequestFinish();
-        std::cout << "Stopping mapviewer" << std::endl;
+        std::cout << "Stopping MapViewer..." << std::endl;
         while(!mpViewer->isFinished())
         {
-            std::cerr << "Waiting for mapviewer to terminate" << std::endl;
+            std::cerr << "Waiting for MapViewer to terminate..." << std::endl;
             std::this_thread::sleep_for(std::chrono::milliseconds(500));
         }
-        std::cout << "Mapviewer terminated" << std::endl;
+        std::cout << "MapViewer terminated" << std::endl;
     }
 
     // Wait until all thread have effectively stopped
     while (!mpLocalMapper->isFinished() || !mpLoopCloser->isFinished() || mpLoopCloser->isRunningGBA())
     {
         std::this_thread::sleep_for(std::chrono::milliseconds(500));
-        std::cerr << "Waiting for threads to terminate" << std::endl;
+        std::cerr << "Waiting for threads to terminate..." << std::endl;
     }
 
     if (is_save_map)
     {
         SaveMap(mapfile);
     }
+
+    // Destroy threads
+    if (mptLoopClosing) {
+      mptLoopClosing->join();
+      delete mptLoopClosing;
+    }
+    if (mptLocalMapping) {
+      mptLocalMapping->join();
+      delete mptLocalMapping;
+    }
+    if (mptViewer) {
+      mptViewer->join();
+      delete mptViewer;
+    }
+
+    bActive = false;
 }
 
 void System::SaveTrajectoryTUM(const string &filename)

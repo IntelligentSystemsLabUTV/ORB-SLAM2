@@ -57,6 +57,7 @@ class Tracking
 
 public:
     Tracking(System* pSys, fbow::Vocabulary* pVoc, FrameDrawer* pFrameDrawer, MapDrawer* pMapDrawer, Map* pMap, KeyFrameDatabase* pKFDB, const string &strSettingPath, const int sensor, bool bReuseMap=false);
+    ~Tracking();
 
     // Preprocess the input and call Track(). Extract features and performs stereo matching.
     cv::Mat GrabImageStereo(const cv::Mat &imRectLeft,const cv::Mat &imRectRight, const double &timestamp);
@@ -151,45 +152,45 @@ protected:
     // "zero-drift" localization to the map.
     bool mbVO;
 
-    //Other Thread Pointers
+    // Pointers to other modules
     LocalMapping* mpLocalMapper;
     LoopClosing* mpLoopClosing;
 
-    //ORB
+    // ORB
     ORBextractor* mpORBextractorLeft, *mpORBextractorRight;
     ORBextractor* mpIniORBextractor;
 
-    //FBoW
+    // FBoW
     KeyFrameDatabase* mpKeyFrameDB;
     fbow::Vocabulary* mpFBOWVocabulary;
 
     // Initalization (only for monocular)
     Initializer* mpInitializer;
 
-    //Local Map
+    // Local Map
     KeyFrame* mpReferenceKF;
     std::vector<KeyFrame*> mvpLocalKeyFrames;
     std::vector<MapPoint*> mvpLocalMapPoints;
-    
+
     // System
     System* mpSystem;
-    
-    //Drawers
+
+    // Drawers
     Viewer* mpViewer;
     FrameDrawer* mpFrameDrawer;
     MapDrawer* mpMapDrawer;
 
-    //Map
+    // Map
     Map* mpMap;
 
     Optimizer* mpOptimizer;
 
-    //Calibration matrix
+    // Calibration matrix
     cv::Mat mK;
     cv::Mat mDistCoef;
     float mbf;
 
-    //New KeyFrame rules (according to fps)
+    // New KeyFrame rules (according to fps)
     int mMinFrames;
     int mMaxFrames;
 
@@ -201,19 +202,19 @@ protected:
     // For RGB-D inputs only. For some datasets (e.g. TUM) the depthmap values are scaled.
     float mDepthMapFactor;
 
-    //Current matches in frame
+    // Current matches in frame
     int mnMatchesInliers;
 
-    //Last Frame, KeyFrame and Relocalisation Info
+    // Last Frame, KeyFrame and Relocalisation Info
     KeyFrame* mpLastKeyFrame;
     Frame mLastFrame;
     unsigned int mnLastKeyFrameId;
     unsigned int mnLastRelocFrameId;
 
-    //Motion Model
+    // Motion Model
     cv::Mat mVelocity;
 
-    //Color order (true RGB, false BGR, ignored if grayscale)
+    // Color order (true RGB, false BGR, ignored if grayscale)
     bool mbRGB;
 
     list<MapPoint*> mlpTemporalPoints;
@@ -252,6 +253,6 @@ protected:
     int mRansacIterationsRelocalization;
 };
 
-} //namespace ORB_SLAM
+} // namespace ORB_SLAM2
 
 #endif // TRACKING_H

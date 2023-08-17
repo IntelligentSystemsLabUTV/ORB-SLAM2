@@ -41,6 +41,7 @@ class Map
 {
 public:
     Map();
+    ~Map();
 
     void AddKeyFrame(KeyFrame* pKF);
     void AddMapPoint(MapPoint* pMP);
@@ -59,7 +60,7 @@ public:
 
     long unsigned int GetMaxKFid();
 
-    void clear();
+    void clear(bool delete_kfs = true);
 
     std::vector<KeyFrame*> mvpKeyFrameOrigins;
 

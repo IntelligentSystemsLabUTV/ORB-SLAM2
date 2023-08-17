@@ -44,6 +44,7 @@ class KeyFrame
 public:
 
     KeyFrame(Frame &F, Map* pMap, KeyFrameDatabase* pKFDB);
+    ~KeyFrame() {}
 
     // Pose functions
     void SetPose(const cv::Mat &Tcw);
@@ -175,7 +176,7 @@ public:
     const std::vector<float> mvDepth; // negative value for monocular points
     const cv::Mat mDescriptors;
 
-    // FBOW.
+    // FBoW
     fbow::fBow  mFbowVec;
     fbow::fBow2 mFbowFeatVec;
 
@@ -197,8 +198,7 @@ public:
     const int mnMaxY;
     const cv::Mat mK;
 
-
-    // The following variables need to be accessed trough a mutex to be thread safe.
+    // The following variables need to be accessed trough a mutex to be thread safe
 protected:
 
     // SE3 Pose and camera center
@@ -218,20 +218,20 @@ protected:
     // Grid over the image to speed up feature matching
     std::vector< std::vector <std::vector<size_t> > > mGrid;
 
-    std::map<KeyFrame*,int> mConnectedKeyFrameWeights;
-    std::vector<KeyFrame*> mvpOrderedConnectedKeyFrames;
+    std::map<KeyFrame *, int> mConnectedKeyFrameWeights;
+    std::vector<KeyFrame *> mvpOrderedConnectedKeyFrames;
     std::vector<int> mvOrderedWeights;
 
     // Spanning Tree and Loop Edges
     bool mbFirstConnection;
-    KeyFrame* mpParent;
-    std::set<KeyFrame*> mspChildrens;
-    std::set<KeyFrame*> mspLoopEdges;
+    KeyFrame * mpParent;
+    std::set<KeyFrame *> mspChildrens;
+    std::set<KeyFrame *> mspLoopEdges;
 
     // Bad flags
     bool mbNotErase;
     bool mbToBeErased;
-    bool mbBad;    
+    bool mbBad;
 
     float mHalfBaseline; // Only for visualization
 
@@ -242,6 +242,6 @@ protected:
     std::mutex mMutexFeatures;
 };
 
-} //namespace ORB_SLAM
+} // namespace ORB_SLAM2
 
 #endif // KEYFRAME_H

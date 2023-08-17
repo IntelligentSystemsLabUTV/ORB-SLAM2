@@ -41,6 +41,7 @@ class LocalMapping
 {
 public:
     LocalMapping(Map* pMap, const float bMonocular, const string &strSettingPath);
+    ~LocalMapping();
 
     void SetLoopCloser(LoopClosing* pLoopCloser);
 

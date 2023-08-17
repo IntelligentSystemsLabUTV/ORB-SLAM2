@@ -36,6 +36,7 @@ class MapDrawer
 {
 public:
     MapDrawer(Map* pMap, const std::string &strSettingPath);
+    ~MapDrawer() {}
 
     Map* mpMap;
 

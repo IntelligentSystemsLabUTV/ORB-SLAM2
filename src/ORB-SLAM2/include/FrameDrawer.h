@@ -40,6 +40,7 @@ class FrameDrawer
 {
 public:
     FrameDrawer(Map* pMap, bool bReuseMap=false);
+    ~FrameDrawer() {}
 
     // Update info from the last processed frame.
     void Update(Tracking *pTracker);
@@ -67,6 +68,6 @@ protected:
     std::mutex mMutex;
 };
 
-} //namespace ORB_SLAM
+} // namespace ORB_SLAM2
 
 #endif // FRAMEDRAWER_H

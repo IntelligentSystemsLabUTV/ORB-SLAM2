@@ -61,7 +61,7 @@ public:
     void SetBadFlag();
     bool isBad();
 
-    void Replace(MapPoint* pMP);    
+    void Replace(MapPoint* pMP);
     MapPoint* GetReplaced();
 
     void IncreaseVisible(int n=1);
@@ -115,20 +115,20 @@ public:
     // Variables used by loop closing
     long unsigned int mnLoopPointForKF;
     long unsigned int mnCorrectedByKF;
-    long unsigned int mnCorrectedReference;    
+    long unsigned int mnCorrectedReference;
     cv::Mat mPosGBA;
     long unsigned int mnBAGlobalForKF;
 
 
     static std::mutex mGlobalMutex;
 
-protected:    
+protected:
 
      // Position in absolute coordinates
      cv::Mat mWorldPos;
 
      // Keyframes observing the point and associated index in keyframe
-     std::map<KeyFrame*,size_t> mObservations;
+     std::map<KeyFrame *, size_t> mObservations;
 
      // Mean viewing direction
      cv::Mat mNormalVector;

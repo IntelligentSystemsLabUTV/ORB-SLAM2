@@ -35,6 +35,15 @@ LocalMapping::LocalMapping(Map *pMap, const float bMonocular, const string &strS
   mpOptimizer = new Optimizer(strSettingPath);
 }
 
+LocalMapping::~LocalMapping()
+{
+    delete mpOptimizer;
+    for (auto kfp : mlNewKeyFrames) {
+        delete kfp;
+    }
+    mlpRecentAddedMapPoints.clear();
+}
+
 void LocalMapping::SetLoopCloser(LoopClosing* pLoopCloser)
 {
     mpLoopCloser = pLoopCloser;
@@ -158,7 +167,7 @@ void LocalMapping::ProcessNewKeyFrame()
                 }
             }
         }
-    }    
+    }
 
     // Update links in the Covisibility Graph
     mpCurrentKeyFrame->UpdateConnections();

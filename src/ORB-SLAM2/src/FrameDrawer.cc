@@ -47,7 +47,7 @@ cv::Mat FrameDrawer::DrawFrame()
     vector<bool> vbVO, vbMap; // Tracked MapPoints in current frame
     int state; // Tracking state
 
-    //Copy variables within scoped mutex
+    // Copy variables within scoped mutex
     {
         unique_lock<mutex> lock(mMutex);
         state=mState;
@@ -77,8 +77,8 @@ cv::Mat FrameDrawer::DrawFrame()
     if(im.channels()<3) //this should be always true
         cvtColor(im,im,cv::COLOR_GRAY2BGR);
 
-    //Draw
-    if(state==Tracking::NOT_INITIALIZED) //INITIALIZING
+    // Draw
+    if(state==Tracking::NOT_INITIALIZED) // INITIALIZING
     {
         for(unsigned int i=0; i<vMatches.size(); i++)
         {
@@ -87,7 +87,7 @@ cv::Mat FrameDrawer::DrawFrame()
                 cv::line(im,vIniKeys[i].pt,vCurrentKeys[vMatches[i]].pt,
                         cv::Scalar(0,255,0));
             }
-        }        
+        }
     }
     else if(state==Tracking::OK) //TRACKING
     {
@@ -203,4 +203,4 @@ void FrameDrawer::Update(Tracking *pTracker)
     mState=static_cast<int>(pTracker->mLastProcessedState);
 }
 
-} //namespace ORB_SLAM
+} // namespace ORB_SLAM2
