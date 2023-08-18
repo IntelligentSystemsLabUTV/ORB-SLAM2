@@ -873,6 +873,12 @@ cv::Mat System::GetFrameDrawerFrame()
   return mpFrameDrawer->DrawFrame();
 }
 
+// Returns the current loops count
+long unsigned int System::GetLoopCount()
+{
+  return mpLoopCloser->GetLoopCount();
+}
+
 // Returns the currently stored map: each element is a 3D-point coordinates vector
 std::vector<Eigen::Vector3f> System::GetMap(bool wait_gba)
 {

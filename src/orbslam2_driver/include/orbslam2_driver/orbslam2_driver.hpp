@@ -69,6 +69,7 @@
 #include <sensor_msgs/msg/imu.hpp>
 #include <sensor_msgs/msg/point_cloud2.hpp>
 #include <std_msgs/msg/header.hpp>
+#include <std_msgs/msg/u_int64.hpp>
 #include <visualization_msgs/msg/marker.hpp>
 #include <visualization_msgs/msg/marker_array.hpp>
 
@@ -127,6 +128,7 @@ private:
 
   /* Topic publishers. */
   rclcpp::Publisher<PoseWithCovarianceStamped>::SharedPtr base_link_pose_pub_;
+  rclcpp::Publisher<UInt64>::SharedPtr loops_pub_;
   rclcpp::Publisher<PoseWithCovarianceStamped>::SharedPtr pose_pub_;
   rclcpp::Publisher<PoseWithCovarianceStamped>::SharedPtr rviz_pose_pub_;
   rclcpp::Publisher<PoseWithCovarianceStamped>::SharedPtr rviz_base_link_pose_pub_;

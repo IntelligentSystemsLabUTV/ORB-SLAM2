@@ -64,6 +64,11 @@ void ORB_SLAM2DriverNode::init_publishers()
     "~/base_link_pose",
     DUAQoS::get_datum_qos());
 
+  // loops
+  loops_pub_ = this->create_publisher<UInt64>(
+    "~/loops",
+    DUAQoS::get_datum_qos());
+
   // pose
   pose_pub_ = this->create_publisher<PoseWithCovarianceStamped>(
     "~/pose",

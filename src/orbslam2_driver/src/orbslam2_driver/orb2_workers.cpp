@@ -23,6 +23,7 @@ void ORB_SLAM2DriverNode::orb2_thread_routine()
   Time frame_ts_ros;
   double frame_ts = 0.0;
   ORB_SLAM2::Tracking::eTrackingState last_tracking_state = ORB_SLAM2::Tracking::OK;
+  uint32_t loop_cnt = 0;
 
   while (running_.load(std::memory_order_acquire)) {
     struct timespec timeout;
@@ -129,6 +130,16 @@ void ORB_SLAM2DriverNode::orb2_thread_routine()
       pose_pub_->publish(orb2_pose.to_pose_with_covariance_stamped());
       rviz_base_link_pose_pub_->publish(base_link_pose.to_pose_with_covariance_stamped());
       rviz_pose_pub_->publish(orb2_pose.to_pose_with_covariance_stamped());
+
+      // Publish loops count
+      uint64_t curr_loops = orb2_->GetLoopCount();
+      if (curr_loops > loop_cnt) {
+        loop_cnt = curr_loops;
+        UInt64 loops_msg{};
+        loops_msg.set__data(curr_loops);
+        loops_pub_->publish(loops_msg);
+        RCLCPP_WARN(this->get_logger(), "Closed loop: %ld", curr_loops);
+      }
 
       // Publish FrameDrawer frame
       if (frame_view_ && frame_drawer_pub_->getNumSubscribers() > 0) {

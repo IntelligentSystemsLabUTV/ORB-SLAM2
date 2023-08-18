@@ -161,6 +161,9 @@ public:
     // Returns the current FrameDrawer frame
     cv::Mat GetFrameDrawerFrame();
 
+    // Returns the current loops count
+    long unsigned int GetLoopCount();
+
 private:
     // Save/Load functions
     void SaveMap(const string &filename);
