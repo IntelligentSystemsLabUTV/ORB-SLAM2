@@ -22,6 +22,7 @@ void ORB_SLAM2DriverNode::orb2_thread_routine()
   cv::Mat frame_1, frame_2;
   Time frame_ts_ros;
   double frame_ts = 0.0;
+  ORB_SLAM2::Tracking::eTrackingState last_tracking_state = ORB_SLAM2::Tracking::OK;
 
   while (running_.load(std::memory_order_acquire)) {
     struct timespec timeout;
@@ -76,9 +77,16 @@ void ORB_SLAM2DriverNode::orb2_thread_routine()
           RCLCPP_WARN(this->get_logger(), "Not initialized");
           continue;
         case ORB_SLAM2::Tracking::OK:
+          if (last_tracking_state != ORB_SLAM2::Tracking::OK) {
+            last_tracking_state = ORB_SLAM2::Tracking::OK;
+            RCLCPP_WARN(this->get_logger(), "Relocalized");
+          }
           break;
         case ORB_SLAM2::Tracking::LOST:
-          RCLCPP_ERROR(this->get_logger(), "Tracking lost");
+          if (last_tracking_state != ORB_SLAM2::Tracking::LOST) {
+            last_tracking_state = ORB_SLAM2::Tracking::LOST;
+            RCLCPP_ERROR(this->get_logger(), "Tracking lost");
+          }
           continue;
         default:
           RCLCPP_FATAL(
