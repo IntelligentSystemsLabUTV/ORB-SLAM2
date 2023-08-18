@@ -4,12 +4,14 @@
     camera_orientation_topic: /zed/zed_2i_driver/imu
     camera_topic_1: /zed/zed_2i_driver/left/image_rect_color
     camera_topic_2: /zed/zed_2i_driver/right/image_rect_color
-    covariance_scaling_factor: 1000.0
+    covariance_scaling_factor: 1.0
     display: false
     frame_view: false
     link_namespace: ''
     mode: STEREO
     orb2_config_path: /home/neo/workspace/src/orbslam2_driver/config/ORB2_ZED2i_Stereo_VGA.yaml
+    start_localization: false
+    subscriber_depth: 30
     tracking_cpu: 2
     transport: raw
     use_sim_time: false
