@@ -24,6 +24,12 @@ ORB_SLAM2DriverNode::ORB_SLAM2DriverNode(const rclcpp::NodeOptions & opts)
   init_services();
   init_tf_listeners();
 
+  if (start_localization_) {
+    localization_.store(true, std::memory_order_release);
+  } else {
+    localization_.store(false, std::memory_order_release);
+  }
+
   if (autostart_) {
     init_orbslam2();
   }
@@ -95,6 +101,15 @@ void ORB_SLAM2DriverNode::init_services()
     "~/enable",
     std::bind(
       &ORB_SLAM2DriverNode::enable_callback,
+      this,
+      std::placeholders::_1,
+      std::placeholders::_2));
+
+  // localization
+  localization_srv_ = this->create_service<SetBool>(
+    "~/localization_mode",
+    std::bind(
+      &ORB_SLAM2DriverNode::localization_callback,
       this,
       std::placeholders::_1,
       std::placeholders::_2));

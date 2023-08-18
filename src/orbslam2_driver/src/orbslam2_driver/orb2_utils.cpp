@@ -92,6 +92,9 @@ bool ORB_SLAM2DriverNode::init_orbslam2()
     display_,
     false,
     false);
+  if (localization_.load(std::memory_order_acquire)) {
+    orb2_->ActivateLocalizationMode();
+  }
 
   // Spawn tracking thread
   running_.store(true, std::memory_order_release);

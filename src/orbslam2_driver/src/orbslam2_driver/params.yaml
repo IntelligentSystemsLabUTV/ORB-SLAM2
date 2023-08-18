@@ -86,6 +86,14 @@ params:
     read_only: false
     var_name: orb2_config_path_
 
+  start_localization:
+    type: bool
+    default_value: false
+    description: "Starts the system in localization mode."
+    constraints: "Cannot be changed."
+    read_only: true
+    var_name: start_localization_
+
   subscriber_depth:
     type: integer
     default_value: 10

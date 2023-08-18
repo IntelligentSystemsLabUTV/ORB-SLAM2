@@ -138,9 +138,13 @@ private:
 
   /* Service servers. */
   rclcpp::Service<SetBool>::SharedPtr enable_srv_;
+  rclcpp::Service<SetBool>::SharedPtr localization_srv_;
 
   /* Service callbacks. */
   void enable_callback(
+    SetBool::Request::SharedPtr req,
+    SetBool::Response::SharedPtr res);
+  void localization_callback(
     SetBool::Request::SharedPtr req,
     SetBool::Response::SharedPtr res);
 
@@ -166,6 +170,7 @@ private:
   ORB_SLAM2::System::eSensor mode_ = ORB_SLAM2::System::eSensor::STEREO;
   std::string mode_str_;
   std::string orb2_config_path_;
+  bool start_localization_;
   int64_t tracking_cpu_;
   std::string transport_;
   std::string vocabulary_path_;
@@ -189,6 +194,7 @@ private:
   std::atomic<bool> running_;
   PoseKit::Pose init_pose_{};
   std::mutex init_pose_lock_;
+  std::atomic<bool> localization_;
 
   /* ORB-SLAM2 system data. */
   std::shared_ptr<ORB_SLAM2::System> orb2_ = nullptr;

@@ -53,4 +53,43 @@ void ORB_SLAM2DriverNode::enable_callback(
   }
 }
 
+/**
+ * @brief Localization service callback.
+ *
+ * @param req Service request.
+ * @param resp Service response.
+ */
+void ORB_SLAM2DriverNode::localization_callback(
+  const SetBool::Request::SharedPtr req,
+  const SetBool::Response::SharedPtr resp)
+{
+  if (req->data) {
+    bool expected = false;
+    if (localization_.compare_exchange_strong(
+        expected,
+        true,
+        std::memory_order_release,
+        std::memory_order_acquire))
+    {
+      orb2_->ActivateLocalizationMode();
+      resp->set__success(true);
+      resp->set__message("");
+      RCLCPP_INFO(this->get_logger(), "Localization mode activated");
+    }
+  } else {
+    bool expected = true;
+    if (localization_.compare_exchange_strong(
+        expected,
+        false,
+        std::memory_order_release,
+        std::memory_order_acquire))
+    {
+      orb2_->DeactivateLocalizationMode();
+      resp->set__success(true);
+      resp->set__message("");
+      RCLCPP_INFO(this->get_logger(), "Localization mode deactivated");
+    }
+  }
+}
+
 } // namespace ORB_SLAM2Driver
