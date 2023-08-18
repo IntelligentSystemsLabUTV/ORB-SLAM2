@@ -72,13 +72,13 @@ cv::Mat FrameDrawer::DrawFrame()
         {
             vCurrentKeys = mvCurrentKeys;
         }
-    } // destroy scoped mutex -> release mutex
+    }
 
-    if(im.channels()<3) //this should be always true
-        cvtColor(im,im,cv::COLOR_GRAY2BGR);
+    if (im.channels()<3) // this should be always true
+        cvtColor(im, im, cv::COLOR_GRAY2BGR);
 
     // Draw
-    if(state==Tracking::NOT_INITIALIZED) // INITIALIZING
+    if (state==Tracking::NOT_INITIALIZED) // INITIALIZING
     {
         for(unsigned int i=0; i<vMatches.size(); i++)
         {
@@ -89,7 +89,7 @@ cv::Mat FrameDrawer::DrawFrame()
             }
         }
     }
-    else if(state==Tracking::OK) //TRACKING
+    else if (state==Tracking::OK) // TRACKING
     {
         mnTracked=0;
         mnTrackedVO=0;
@@ -164,7 +164,6 @@ void FrameDrawer::DrawTextInfo(cv::Mat &im, int nState, cv::Mat &imText)
     im.copyTo(imText.rowRange(0,im.rows).colRange(0,im.cols));
     imText.rowRange(im.rows,imText.rows) = cv::Mat::zeros(textSize.height+10,im.cols,im.type());
     cv::putText(imText,s.str(),cv::Point(5,imText.rows-5),cv::FONT_HERSHEY_PLAIN,1,cv::Scalar(255,255,255),1,8);
-
 }
 
 void FrameDrawer::Update(Tracking *pTracker)

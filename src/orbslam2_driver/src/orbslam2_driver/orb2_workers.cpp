@@ -121,6 +121,14 @@ void ORB_SLAM2DriverNode::orb2_thread_routine()
       pose_pub_->publish(orb2_pose.to_pose_with_covariance_stamped());
       rviz_base_link_pose_pub_->publish(base_link_pose.to_pose_with_covariance_stamped());
       rviz_pose_pub_->publish(orb2_pose.to_pose_with_covariance_stamped());
+
+      // Publish FrameDrawer frame
+      if (frame_view_ && frame_drawer_pub_->getNumSubscribers() > 0) {
+        cv::Mat frame_drawer_frame = orb2_->GetFrameDrawerFrame();
+        Image::SharedPtr frame_drawer_msg = frame_to_msg(frame_drawer_frame);
+        frame_drawer_msg->header.set__stamp(orb2_pose.get_header().stamp);
+        frame_drawer_pub_->publish(frame_drawer_msg);
+      }
     }
   }
 }

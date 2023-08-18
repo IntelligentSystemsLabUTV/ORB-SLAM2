@@ -55,6 +55,8 @@
 #include <message_filters/synchronizer.h>
 #include <message_filters/sync_policies/exact_time.h>
 
+#include <theora_wrappers/publisher.hpp>
+
 #include <tf2/exceptions.h>
 #include <tf2_ros/buffer.h>
 #include <tf2_ros/transform_listener.h>
@@ -129,6 +131,9 @@ private:
   rclcpp::Publisher<PoseWithCovarianceStamped>::SharedPtr rviz_pose_pub_;
   rclcpp::Publisher<PoseWithCovarianceStamped>::SharedPtr rviz_base_link_pose_pub_;
 
+  /* FrameDrawer publisher */
+  std::shared_ptr<TheoraWrappers::Publisher> frame_drawer_pub_;
+
   /* Service servers. */
   rclcpp::Service<SetBool>::SharedPtr enable_srv_;
 
@@ -165,6 +170,7 @@ private:
   bool verbose_;
 
   /* Node parameters validators. */
+  bool validate_frame_view(const rclcpp::Parameter & p);
   bool validate_mode(const rclcpp::Parameter & p);
   bool validate_transport(const rclcpp::Parameter & p);
 
@@ -194,6 +200,7 @@ private:
     std::string && frame_id,
     const Time & ts,
     const cv::Mat & cov = cv::Mat::zeros(6,6,CV_32F));
+  Image::SharedPtr frame_to_msg(cv::Mat & frame);
 };
 
 } // namespace ORB_SLAM2Driver

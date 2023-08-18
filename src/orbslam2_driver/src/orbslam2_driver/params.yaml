@@ -58,9 +58,9 @@ params:
     type: bool
     default_value: false
     description: "Activates the FrameViewer module publisher."
-    constraints: "Changes require system restart."
+    constraints: "Cannot be changed while the system is active."
     read_only: false
-    var_name: frame_view_
+    validator: validate_frame_view
 
   link_namespace:
     type: string

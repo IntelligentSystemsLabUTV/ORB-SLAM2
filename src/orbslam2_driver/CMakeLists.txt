@@ -43,6 +43,7 @@ find_package(tf2 REQUIRED)
 find_package(tf2_eigen REQUIRED)
 find_package(tf2_ros REQUIRED)
 find_package(Threads REQUIRED)
+find_package(theora_wrappers REQUIRED)
 find_package(visualization_msgs REQUIRED)
 
 # Generate parameters source code
@@ -86,6 +87,7 @@ ament_target_dependencies(orbslam2_driver
   tf2
   tf2_eigen
   tf2_ros
+  theora_wrappers
   visualization_msgs)
 rclcpp_components_register_nodes(orbslam2_driver "ORB_SLAM2Driver::ORB_SLAM2DriverNode")
 

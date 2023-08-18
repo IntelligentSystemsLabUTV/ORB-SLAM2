@@ -76,6 +76,14 @@ bool ORB_SLAM2DriverNode::init_orbslam2()
     return false;
   }
 
+  // Initialize frame_viewer publisher
+  if (frame_view_) {
+    frame_drawer_pub_ = std::make_shared<TheoraWrappers::Publisher>(
+      this,
+      "~/frame_viewer",
+      DUAQoS::Visualization::get_image_qos().get_rmw_qos_profile());
+  }
+
   // Initialize ORB-SLAM2 system
   orb2_ = std::make_shared<ORB_SLAM2::System>(
     vocabulary_path_,
@@ -121,6 +129,8 @@ void ORB_SLAM2DriverNode::fini_orbslam2()
   orb2_thread_.join();
   orb2_->Shutdown();
   orb2_.reset();
+
+  frame_drawer_pub_.reset();
 
   sem_destroy(&orb2_thread_sem_1_);
   sem_destroy(&orb2_thread_sem_2_);
@@ -192,6 +202,25 @@ PoseKit::Pose ORB_SLAM2DriverNode::hpose_to_pose(
 }
 
 /**
+ * @brief Validates the frame_view parameter.
+ *
+ * @param p The parameter to validate.
+ * @return True if the parameter is valid, false otherwise.
+ */
+bool ORB_SLAM2DriverNode::validate_frame_view(const rclcpp::Parameter & p)
+{
+  if (running_.load(std::memory_order_acquire)) {
+    RCLCPP_ERROR(
+      this->get_logger(),
+      "ORB_SLAM2DriverNode::validate_frame_view: Cannot change frame_view while the system is running");
+    return false;
+  }
+
+  frame_view_ = p.as_bool();
+  return true;
+}
+
+/**
  * @brief Validates the mode parameter.
  *
  * @param p The parameter to validate.
@@ -242,6 +271,32 @@ bool ORB_SLAM2DriverNode::validate_transport(const rclcpp::Parameter & p)
   }
 
   return true;
+}
+
+/**
+ * @brief Converts a frame into an Image message.
+ *
+ * @param frame cv::Mat storing the frame.
+ * @return Shared pointer to a new Image message.
+ */
+Image::SharedPtr ORB_SLAM2DriverNode::frame_to_msg(cv::Mat & frame)
+{
+  auto ros_image = std::make_shared<Image>();
+
+  // Set frame-relevant fields
+  ros_image->set__width(frame.cols);
+  ros_image->set__height(frame.rows);
+  ros_image->set__step(frame.cols * frame.elemSize());
+  ros_image->set__is_bigendian(false);
+  ros_image->set__encoding(sensor_msgs::image_encodings::BGR8);
+  ros_image->header.set__frame_id(link_namespace_ + "orb2_link");
+
+  // Copy frame data
+  size_t size = ros_image->step * frame.rows;
+  ros_image->data.resize(size);
+  memcpy(ros_image->data.data(), frame.data, size);
+
+  return ros_image;
 }
 
 } // namespace ORB_SLAM2Driver

@@ -158,6 +158,9 @@ public:
     // Returns the currently stored map: each column is a 3D-point coordinates vector
     std::vector<Eigen::Vector3f> GetMap(bool wait_gba = false);
 
+    // Returns the current FrameDrawer frame
+    cv::Mat GetFrameDrawerFrame();
+
 private:
     // Save/Load functions
     void SaveMap(const string &filename);

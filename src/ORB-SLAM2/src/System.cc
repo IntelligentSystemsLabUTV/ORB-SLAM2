@@ -867,6 +867,12 @@ cv::Mat System::GetCurrentCovarianceMatrix(bool rotationInverse)
   }
 }
 
+// Returns the current FrameDrawer frame
+cv::Mat System::GetFrameDrawerFrame()
+{
+  return mpFrameDrawer->DrawFrame();
+}
+
 // Returns the currently stored map: each element is a 3D-point coordinates vector
 std::vector<Eigen::Vector3f> System::GetMap(bool wait_gba)
 {

@@ -88,9 +88,6 @@ private:
 
 };
 
-}
-
+} // namespace ORB_SLAM2
 
 #endif // VIEWER_H
-	
-
