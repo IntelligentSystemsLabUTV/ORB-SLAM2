@@ -205,5 +205,6 @@ endif()
 
 ament_export_targets(g2oTargets HAS_LIBRARY_TARGET)
 ament_export_include_directories(include)
+ament_export_dependencies(Eigen3)
 
 ament_package()

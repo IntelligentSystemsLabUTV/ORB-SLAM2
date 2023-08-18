@@ -22,20 +22,16 @@ set(THREADS_PREFER_PTHREAD_FLAG ON)
 # Find dependencies
 find_package(ament_cmake REQUIRED)
 find_package(builtin_interfaces REQUIRED)
-find_package(dlib REQUIRED)
 find_package(dua_app_management REQUIRED)
 find_package(dua_interfaces REQUIRED)
 find_package(dua_node REQUIRED)
 find_package(dua_qos REQUIRED)
 find_package(Eigen3 3.4 REQUIRED)
-find_package(fbow REQUIRED)
-find_package(g2o REQUIRED)
 find_package(geometry_msgs REQUIRED)
 find_package(image_transport REQUIRED)
 find_package(message_filters REQUIRED)
 find_package(OpenCV 4 REQUIRED)
 find_package(orbslam2 REQUIRED)
-find_package(Pangolin REQUIRED)
 find_package(params_manager REQUIRED)
 find_package(pose_kit REQUIRED)
 find_package(rclcpp REQUIRED)
@@ -46,6 +42,7 @@ find_package(std_srvs REQUIRED)
 find_package(tf2 REQUIRED)
 find_package(tf2_eigen REQUIRED)
 find_package(tf2_ros REQUIRED)
+find_package(Threads REQUIRED)
 find_package(visualization_msgs REQUIRED)
 
 # Generate parameters source code
@@ -69,16 +66,12 @@ target_compile_features(orbslam2_driver PUBLIC c_std_99 cxx_std_17)  # Require C
 target_link_libraries(orbslam2_driver
   Eigen3::Eigen
   ${OpenCV_LIBS}
-  ${Pangolin_LIBRARIES}
   Threads::Threads)
 ament_target_dependencies(orbslam2_driver
   builtin_interfaces
-  dlib
   dua_interfaces
   dua_node
   dua_qos
-  fbow
-  g2o
   geometry_msgs
   image_transport
   message_filters

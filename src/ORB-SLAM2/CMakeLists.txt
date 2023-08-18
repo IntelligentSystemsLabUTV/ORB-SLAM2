@@ -39,12 +39,14 @@ endif()
 # Find dependencies
 find_package(ament_cmake REQUIRED)
 find_package(ament_cmake_ros REQUIRED)
-find_library(BOOST_SERIALIZATION boost_serialization)
 find_package(dlib REQUIRED)
 find_package(Eigen3 3.4.0 REQUIRED NO_MODULE)
 find_package(fbow REQUIRED)
 find_package(g2o REQUIRED)
 find_package(Pangolin REQUIRED)
+find_package(Threads REQUIRED)
+
+find_library(BOOST_SERIALIZATION boost_serialization)
 
 find_package(OpenCV 4.2 QUIET)
 if(NOT OpenCV_FOUND)
@@ -127,5 +129,13 @@ if(BUILD_TESTING)
 endif()
 
 ament_export_targets(orbslam2Targets HAS_LIBRARY_TARGET)
+ament_export_dependencies(
+  dlib
+  Eigen3
+  fbow
+  g2o
+  OpenCV
+  Pangolin
+  Threads)
 
 ament_package()

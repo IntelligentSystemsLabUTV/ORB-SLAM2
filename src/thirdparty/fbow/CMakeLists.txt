@@ -207,7 +207,7 @@ ELSE()  # MSVC
 ENDIF()#END OF COMPILER SPECIFIC OPTIONS
 
 find_package(OpenMP)
-if (OPENMP_FOUND)
+if(OPENMP_FOUND)
   add_compile_options(-DUSE_OPENMP)
   set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${OpenMP_C_FLAGS}")
   set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${OpenMP_CXX_FLAGS}")
@@ -316,4 +316,12 @@ if(BUILD_TESTING)
 endif()
 
 ament_export_targets(fbowTargets HAS_LIBRARY_TARGET)
+if(OPENMP_FOUND)
+  ament_export_dependencies(
+    OpenCV
+    OpenMP)
+else()
+  ament_export_dependencies(
+    OpenCV)
+endif()
 ament_package()
