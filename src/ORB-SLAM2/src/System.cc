@@ -448,13 +448,13 @@ void System::Shutdown()
     if (mpViewer)
     {
         mpViewer->RequestFinish();
-        std::cout << "Stopping MapViewer..." << std::endl;
+        std::cout << "Stopping Viewer..." << std::endl;
         while(!mpViewer->isFinished())
         {
-            std::cerr << "Waiting for MapViewer to terminate..." << std::endl;
+            std::cerr << "Waiting for Viewer to terminate..." << std::endl;
             std::this_thread::sleep_for(std::chrono::milliseconds(500));
         }
-        std::cout << "MapViewer terminated" << std::endl;
+        std::cout << "Viewer terminated" << std::endl;
     }
 
     // Wait until all thread have effectively stopped

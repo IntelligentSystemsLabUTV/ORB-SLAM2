@@ -14,10 +14,8 @@ namespace ORB_SLAM2Driver
 
 /**
  * @brief Runs the ORB-SLAM2 tracking loop.
- *
- * @throws RuntimeError if something fails.
  */
-void ORB_SLAM2DriverNode::orb2_thread_routine()
+void ORB_SLAM2DriverNode::tracking_thread_routine()
 {
   cv::Mat frame_1, frame_2;
   Time frame_ts_ros;
@@ -26,24 +24,13 @@ void ORB_SLAM2DriverNode::orb2_thread_routine()
   uint32_t loop_cnt = 0;
 
   while (running_.load(std::memory_order_acquire)) {
-    struct timespec timeout;
-    if (clock_gettime(CLOCK_REALTIME, &timeout) == -1) {
-      RCLCPP_FATAL(
-        this->get_logger(),
-        "ORB_SLAM2DriverNode::orb2_thread_routine: clock_gettime failed");
-      throw std::runtime_error(
-              "ORB_SLAM2DriverNode::orb2_thread_routine: clock_gettime failed");
-    }
-    timeout.tv_sec += 1;
-
-    if (sem_timedwait(&orb2_thread_sem_2_, &timeout) == 0) {
-      // Get frames
-      frame_1 = camera_1_frame_;
-      frame_2 = camera_2_frame_;
-      frame_ts_ros = frame_ts_;
-      frame_ts =
-        double(frame_ts_.sec) * 1e9 + double(frame_ts_.nanosec);
-      sem_post(&orb2_thread_sem_1_);
+    try {
+      // Get input data from the queue
+      InputData::SharedPtr input_data = input_queue_->pop();
+      frame_1 = input_data->camera_1_frame;
+      frame_2 = input_data->camera_2_frame;
+      frame_ts_ros = input_data->ts;
+      frame_ts = double(frame_ts_ros.sec) * 1e9 + double(frame_ts_ros.nanosec);
 
       // Execute tracking
       PoseKit::Pose orb2_pose{};
@@ -59,11 +46,9 @@ void ORB_SLAM2DriverNode::orb2_thread_routine()
         // Should never happen
         RCLCPP_FATAL(
           this->get_logger(),
-          "ORB_SLAM2DriverNode::orb2_thread_routine: Invalid system mode stored: '%s'",
+          "ORB_SLAM2DriverNode::tracking_thread_routine: Invalid system mode stored: '%s'",
           mode_str_.c_str());
-        throw std::runtime_error(
-                "ORB_SLAM2DriverNode::orb2_thread_routine: Invalid system mode stored: " +
-                mode_str_);
+        continue;
       }
 
       // Check tracking state
@@ -90,11 +75,11 @@ void ORB_SLAM2DriverNode::orb2_thread_routine()
           }
           continue;
         default:
+          // Should never happen
           RCLCPP_FATAL(
             this->get_logger(),
-            "ORB_SLAM2DriverNode::orb2_thread_routine: Invalid tracking state");
-          throw std::runtime_error(
-                  "ORB_SLAM2DriverNode::orb2_thread_routine: Invalid tracking state");
+            "ORB_SLAM2DriverNode::tracking_thread_routine: Invalid tracking state");
+          break;
       }
 
       // Apply initial transformation
@@ -120,7 +105,7 @@ void ORB_SLAM2DriverNode::orb2_thread_routine()
       } catch (const std::exception & e) {
         RCLCPP_ERROR(
           this->get_logger(),
-          "ORB_SLAM2DriverNode::orb2_thread_routine: base_link_pose::track_parent: %s",
+          "ORB_SLAM2DriverNode::tracking_thread_routine: base_link_pose::track_parent: %s",
           e.what());
         tf_lock_.unlock();
       }
@@ -148,6 +133,13 @@ void ORB_SLAM2DriverNode::orb2_thread_routine()
         frame_drawer_msg->header.set__stamp(orb2_pose.get_header().stamp);
         frame_drawer_pub_->publish(frame_drawer_msg);
       }
+    } catch (const std::logic_error & e) {
+      RCLCPP_ERROR(
+        this->get_logger(),
+        "ORB_SLAM2DriverNode::tracking_thread_routine: %s",
+        e.what());
+    } catch (...) {
+      // These can only be forced wakeups
     }
   }
 }

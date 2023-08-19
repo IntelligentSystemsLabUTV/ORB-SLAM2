@@ -26,6 +26,7 @@ find_package(dua_app_management REQUIRED)
 find_package(dua_interfaces REQUIRED)
 find_package(dua_node REQUIRED)
 find_package(dua_qos REQUIRED)
+find_package(dua_structures REQUIRED)
 find_package(Eigen3 3.4 REQUIRED)
 find_package(geometry_msgs REQUIRED)
 find_package(image_transport REQUIRED)
@@ -73,6 +74,7 @@ ament_target_dependencies(orbslam2_driver
   dua_interfaces
   dua_node
   dua_qos
+  dua_structures
   geometry_msgs
   image_transport
   message_filters

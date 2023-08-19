@@ -67,27 +67,14 @@ void ORB_SLAM2DriverNode::stereo_callback(
   const Image::ConstSharedPtr & camera_1_msg,
   const Image::ConstSharedPtr & camera_2_msg)
 {
-  struct timespec timeout;
-  if (clock_gettime(CLOCK_REALTIME, &timeout) == -1) {
-    RCLCPP_FATAL(
-      this->get_logger(),
-      "ORB_SLAM2DriverNode::stereo_callback: clock_gettime failed");
-    throw std::runtime_error(
-            "ORB_SLAM2DriverNode::stereo_callback: clock_gettime failed");
-  }
-  timeout.tv_sec += 1;
+  // Create new input data buffer
+  auto new_input = std::make_shared<InputData>(
+    image_to_cv_mat(camera_1_msg),
+    image_to_cv_mat(camera_2_msg),
+    camera_1_msg->header.stamp);
 
-  // Try to forward new frames to the tracking thread
-  if (sem_timedwait(&orb2_thread_sem_1_, &timeout) == 0) {
-    camera_1_frame_ = image_to_cv_mat(camera_1_msg);
-    camera_2_frame_ = image_to_cv_mat(camera_2_msg);
-    frame_ts_ = camera_1_msg->header.stamp;
-    sem_post(&orb2_thread_sem_2_);
-  } else {
-    RCLCPP_ERROR(
-      this->get_logger(),
-      "ORB_SLAM2DriverNode::stereo_callback: Tracking thread busy, missed frames");
-  }
+  // Push it into the queue
+  input_queue_->push(new_input);
 }
 
 } // namespace ORB_SLAM2Driver

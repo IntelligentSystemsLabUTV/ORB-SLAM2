@@ -30,16 +30,8 @@ bool ORB_SLAM2DriverNode::init_orbslam2()
       this,
       std::placeholders::_1));
 
-  // Initialize synchronization primitives
-  if (sem_init(&orb2_thread_sem_1_, 0, 1) ||
-    sem_init(&orb2_thread_sem_2_, 0, 0))
-  {
-    char err_msg_buf[100] = {};
-    char * err_msg = strerror_r(errno, err_msg_buf, 100);
-    throw std::runtime_error(
-            "ORB_SLAM2DriverNode::init_orbslam2: Failed to initialize semaphores: " +
-            std::string(err_msg));
-  }
+  // Initialize input data queue
+  input_queue_ = std::make_shared<DUAStructures::ThreadSafeQueue<InputData::SharedPtr>>();
 
   // Subscribe to camera topics
   int64_t depth = this->get_parameter("subscriber_depth").as_int();
@@ -101,10 +93,10 @@ bool ORB_SLAM2DriverNode::init_orbslam2()
   cpu_set_t tracking_cpu_set;
   CPU_ZERO(&tracking_cpu_set);
   CPU_SET(tracking_cpu_, &tracking_cpu_set);
-  orb2_thread_ = std::thread(
-    &ORB_SLAM2DriverNode::orb2_thread_routine,
+  tracking_thread_ = std::thread(
+    &ORB_SLAM2DriverNode::tracking_thread_routine,
     this);
-  if (pthread_setaffinity_np(orb2_thread_.native_handle(), sizeof(cpu_set_t), &tracking_cpu_set)) {
+  if (pthread_setaffinity_np(tracking_thread_.native_handle(), sizeof(cpu_set_t), &tracking_cpu_set)) {
     char err_msg_buf[100] = {};
     char * err_msg = strerror_r(errno, err_msg_buf, 100);
     throw std::runtime_error(
@@ -112,7 +104,7 @@ bool ORB_SLAM2DriverNode::init_orbslam2()
             std::string(err_msg));
   }
 
-  RCLCPP_WARN(this->get_logger(), "ORB-SLAM2 thread started");
+  RCLCPP_WARN(this->get_logger(), "Tracking thread started");
 
   return true;
 }
@@ -122,23 +114,23 @@ bool ORB_SLAM2DriverNode::init_orbslam2()
  */
 void ORB_SLAM2DriverNode::fini_orbslam2()
 {
-  running_.store(false, std::memory_order_release);
-
   stereo_sync_.reset();
   camera_1_sub_.reset();
   camera_2_sub_.reset();
   camera_imu_sub_.reset();
 
-  orb2_thread_.join();
+  running_.store(false, std::memory_order_release);
+  input_queue_->notify();
+  tracking_thread_.join();
+
   orb2_->Shutdown();
   orb2_.reset();
 
   frame_drawer_pub_.reset();
 
-  sem_destroy(&orb2_thread_sem_1_);
-  sem_destroy(&orb2_thread_sem_2_);
+  input_queue_.reset();
 
-  RCLCPP_WARN(this->get_logger(), "ORB-SLAM2 thread stopped");
+  RCLCPP_WARN(this->get_logger(), "Tracking thread stopped");
 }
 
 /**
