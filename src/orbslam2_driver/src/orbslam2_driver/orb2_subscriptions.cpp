@@ -60,17 +60,53 @@ void ORB_SLAM2DriverNode::camera_imu_callback(const Imu::SharedPtr msg)
  *
  * @param camera_1_msg Camera 1 frame.
  * @param camera_2_msg Camera 2 frame.
- *
- * @throws RuntimeError if system time cannot be retrieved.
  */
 void ORB_SLAM2DriverNode::stereo_callback(
   const Image::ConstSharedPtr & camera_1_msg,
   const Image::ConstSharedPtr & camera_2_msg)
 {
+  // Parse frames
+  cv::Mat frame_1 = image_to_cv_mat(camera_1_msg);
+  cv::Mat frame_2 = image_to_cv_mat(camera_2_msg);
+
+  if (camera_1_msg->encoding != camera_2_msg->encoding) {
+    RCLCPP_ERROR(
+      this->get_logger(),
+      "ORB_SLAM2DriverNode::stereo_callback: Left/Right frames have different encodings: %s, %s",
+      camera_1_msg->encoding.c_str(),
+      camera_2_msg->encoding.c_str());
+    return;
+  }
+
+  cv::Mat frame_1_input, frame_2_input;
+  if (preconvert_frames_) {
+    cv::ColorConversionCodes conversion_code = cv::COLOR_BGR2GRAY;
+    if (camera_1_msg->encoding == sensor_msgs::image_encodings::BGR8) {
+      conversion_code = cv::COLOR_BGR2GRAY;
+    } else if (camera_1_msg->encoding == sensor_msgs::image_encodings::RGB8) {
+      conversion_code = cv::COLOR_RGB2GRAY;
+    } else if (camera_1_msg->encoding == sensor_msgs::image_encodings::BGRA8) {
+      conversion_code = cv::COLOR_BGRA2GRAY;
+    } else if (camera_1_msg->encoding == sensor_msgs::image_encodings::RGBA8) {
+      conversion_code = cv::COLOR_RGBA2GRAY;
+    } else {
+      RCLCPP_ERROR(
+        this->get_logger(),
+        "ORB_SLAM2DriverNode::stereo_callback: Unsupported image encoding: %s",
+        camera_1_msg->encoding.c_str());
+    }
+
+    cv::cvtColor(frame_1, frame_1_input, conversion_code);
+    cv::cvtColor(frame_2, frame_2_input, conversion_code);
+  } else {
+    frame_1_input = frame_1;
+    frame_2_input = frame_2;
+  }
+
   // Create new input data buffer
   auto new_input = std::make_shared<InputData>(
-    image_to_cv_mat(camera_1_msg),
-    image_to_cv_mat(camera_2_msg),
+    frame_1_input,
+    frame_2_input,
     camera_1_msg->header.stamp);
 
   // Push it into the queue

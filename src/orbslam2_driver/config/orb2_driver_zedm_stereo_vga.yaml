@@ -9,6 +9,7 @@
     frame_view: false
     link_namespace: ''
     mode: STEREO
+    preconvert_frames: true
     orb2_config_path: /home/neo/workspace/src/orbslam2_driver/config/ZEDMini_Stereo_VGA.yaml
     start_localization: false
     subscriber_depth: 30

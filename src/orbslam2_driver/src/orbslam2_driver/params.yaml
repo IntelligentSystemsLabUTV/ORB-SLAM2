@@ -78,6 +78,14 @@ params:
     read_only: false
     validator: validate_mode
 
+  preconvert_frames:
+    type: bool
+    default_value: true
+    description: "Preconverts the frames to grayscale in the camera subscriber callback."
+    constraints: "Activate this is the camera frames are color and the system's rate is evidently lower than the camera's rate."
+    read_only: false
+    var_name: preconvert_frames_
+
   orb2_config_path:
     type: string
     default_value: "/home/neo/workspace/src/ORB-SLAM2/Config/Zed-M-Stereo.yaml"

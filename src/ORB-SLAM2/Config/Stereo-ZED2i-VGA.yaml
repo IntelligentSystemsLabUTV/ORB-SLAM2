@@ -16,7 +16,7 @@ Camera.fy: 261.075042724
 Camera.cx: 336.756042480
 Camera.cy: 186.800491333
 
-# Distortion coefficient
+# Distortion coefficients
 Camera.k1: 0.0
 Camera.k2: 0.0
 Camera.p1: 0.0
@@ -33,6 +33,7 @@ Camera.fps: 30.0
 Camera.bf: 31.356945037841797
 
 # Color order of the images (0: BGR, 1: RGB, ignored if images are grayscale)
+# WARNING: In STEREO mode, L/R frames must have the same encoding.
 Camera.RGB: 0
 
 # Coefficient for close/far map points threshold (applied to baseline)

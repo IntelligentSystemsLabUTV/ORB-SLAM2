@@ -186,6 +186,7 @@ private:
   std::string link_namespace_;
   ORB_SLAM2::System::eSensor mode_ = ORB_SLAM2::System::eSensor::STEREO;
   std::string mode_str_;
+  bool preconvert_frames_;
   std::string orb2_config_path_;
   bool start_localization_;
   int64_t tracking_cpu_;
