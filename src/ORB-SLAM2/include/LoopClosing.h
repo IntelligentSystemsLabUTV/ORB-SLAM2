@@ -22,7 +22,11 @@
 #define LOOPCLOSING_H
 
 #include <mutex>
+#include <stdexcept>
 #include <thread>
+
+#include <sched.h>
+#include <pthread.h>
 
 #include "KeyFrame.h"
 #include "KeyFrameDatabase.h"
@@ -150,6 +154,8 @@ protected:
   long unsigned int loopCnt;
 
   int loopRate;
+
+  int gbaCPU;
 
   // Variables related to Global Bundle Adjustment
   bool mbRunningGBA;

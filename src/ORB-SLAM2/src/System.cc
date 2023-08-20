@@ -36,6 +36,15 @@ System::System(const string &strVocFile, const string &strSettingsFile, const eS
                const bool bUseViewer, bool is_save_map_, bool replayer_):mSensor(sensor), is_save_map(is_save_map_), replayer(replayer_), mpViewer(static_cast<Viewer*>(NULL)), mbReset(false),
         mbActivateLocalizationMode(false), mbDeactivateLocalizationMode(false), mCurrCameraPose(cv::Mat::eye(4, 4, CV_32F)), bActive(true)
 {
+    cv::FileStorage fSettings(strSettingsFile, cv::FileStorage::READ);
+    int _mloopClosingCPU = fSettings["LoopClosing.CPU"];
+    int _mlocalMappingCPU = fSettings["LocalMapping.CPU"];
+    if ((_mloopClosingCPU == 0 && _mlocalMappingCPU == 0) ||
+      (_mloopClosingCPU == _mlocalMappingCPU)) {
+      _mloopClosingCPU = 2;
+      _mlocalMappingCPU = 4;
+    }
+
     cout << "System mode: ";
 
     if (mSensor == MONOCULAR)
@@ -116,9 +125,37 @@ System::System(const string &strVocFile, const string &strSettingsFile, const eS
     mpLoopCloser->SetTracker(mpTracker);
     mpLoopCloser->SetLocalMapper(mpLocalMapper);
 
+    // Start Local Mapping thread
+    std::cout << "Starting Local Mapping on CPU " << _mlocalMappingCPU << "..." << std::endl;
+    cpu_set_t local_mapping_cpu_set;
+    CPU_ZERO(&local_mapping_cpu_set);
+    CPU_SET(_mlocalMappingCPU, &local_mapping_cpu_set);
     mptLocalMapping = new thread(&ORB_SLAM2::LocalMapping::Run, mpLocalMapper);
+    if (pthread_setaffinity_np(mptLocalMapping->native_handle(), sizeof(cpu_set_t), &local_mapping_cpu_set)) {
+      char err_msg_buf[100] = {};
+      char * err_msg = strerror_r(errno, err_msg_buf, 100);
+      throw std::runtime_error(
+              "ORB_SLAM2::System::System: Failed to configure Local Mapping thread: " +
+              std::string(err_msg));
+    }
+
+    // Start Loop Closing thread
+    std::cout << "Starting Loop Closing on CPU " << _mloopClosingCPU << "..." << std::endl;
+    cpu_set_t loop_closing_cpu_set;
+    CPU_ZERO(&loop_closing_cpu_set);
+    CPU_SET(_mloopClosingCPU, &loop_closing_cpu_set);
     mptLoopClosing = new thread(&ORB_SLAM2::LoopClosing::Run, mpLoopCloser);
+    if (pthread_setaffinity_np(mptLoopClosing->native_handle(), sizeof(cpu_set_t), &loop_closing_cpu_set)) {
+      char err_msg_buf[100] = {};
+      char * err_msg = strerror_r(errno, err_msg_buf, 100);
+      throw std::runtime_error(
+              "ORB_SLAM2::System::System: Failed to configure Loop Closing thread: " +
+              std::string(err_msg));
+    }
+
+    // Start Viewer thread
     if (bUseViewer) {
+        std::cout << "Starting Viewer..." << std::endl;
         mptViewer = new thread(&Viewer::Run, mpViewer);
     }
 }

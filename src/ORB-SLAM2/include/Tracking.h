@@ -38,6 +38,12 @@
 #include "System.h"
 
 #include <mutex>
+#include <stdexcept>
+#include <vector>
+
+#include <pthread.h>
+#include <sched.h>
+#include <semaphore.h>
 
 #include <fbow/fbow.h>
 
@@ -219,6 +225,23 @@ protected:
 
     list<MapPoint*> mlpTemporalPoints;
 
+    // Feature extractor threads for STEREO mode
+    std::thread * leftExtractorThread;
+    std::thread * rightExtractorThread;
+    cv::Mat * leftImage, * rightImage;
+    std::vector<cv::KeyPoint> * leftKeyPoints, * rightKeyPoints;
+    cv::Mat * leftDescriptors, * rightDescriptors;
+    sem_t leftSem1, leftSem2;
+    sem_t rightSem1, rightSem2;
+    bool stopping;
+    void ExtractorThread(
+      ORB_SLAM2::ORBextractor * extractor,
+      cv::Mat ** image,
+      std::vector<cv::KeyPoint> ** keyPoints,
+      cv::Mat ** descriptors,
+      sem_t * sem2,
+      sem_t * sem1);
+
     // New configuration parameters
     float mReferenceKeyframeNnRatioOrbMatcher;
     float mSearchLocalPointsNnRatioOrbMatcher;
@@ -251,6 +274,8 @@ protected:
     int mPnpSolverRansacMaxIterations;
     int mPnpSolverRansacMinSet;
     int mRansacIterationsRelocalization;
+    int leftExtractorCPU;
+    int rightExtractorCPU;
 };
 
 } // namespace ORB_SLAM2

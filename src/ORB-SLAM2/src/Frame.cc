@@ -59,7 +59,17 @@ Frame::Frame(const Frame &frame)
 }
 
 // Constructor for Stereo cameras.
-Frame::Frame(const cv::Mat &imLeft, const cv::Mat &imRight, const double &timeStamp, ORBextractor* extractorLeft, ORBextractor* extractorRight, fbow::Vocabulary* voc, cv::Mat &K, cv::Mat &distCoef, const float &bf, const float &thDepth)
+Frame::Frame(
+    cv::Mat &imLeft, cv::Mat &imRight,
+    const double &timeStamp,
+    ORBextractor* extractorLeft, ORBextractor* extractorRight,
+    fbow::Vocabulary* voc,
+    cv::Mat &K, cv::Mat &distCoef, const float &bf, const float &thDepth,
+    sem_t * leftSem1, sem_t * leftSem2,
+    sem_t * rightSem1, sem_t * rightSem2,
+    cv::Mat ** leftImage, cv::Mat ** rightImage,
+    std::vector<cv::KeyPoint> ** leftKeyPoints, std::vector<cv::KeyPoint> ** rightKeyPoints,
+    cv::Mat ** leftDescriptors, cv::Mat ** rightDescriptors)
     :mpFBOWvocabulary(voc), mpORBextractorLeft(extractorLeft), mpORBextractorRight(extractorRight), mTimeStamp(timeStamp), mK(K.clone()), mDistCoef(distCoef.clone()), mbf(bf), mThDepth(thDepth),
      mpReferenceKF(static_cast<KeyFrame*>(NULL))
 {
@@ -75,11 +85,24 @@ Frame::Frame(const cv::Mat &imLeft, const cv::Mat &imRight, const double &timeSt
     mvLevelSigma2 = mpORBextractorLeft->GetScaleSigmaSquares();
     mvInvLevelSigma2 = mpORBextractorLeft->GetInverseScaleSigmaSquares();
 
-    // ORB extraction
-    thread threadLeft(&Frame::ExtractORB,this,0,imLeft);
-    thread threadRight(&Frame::ExtractORB,this,1,imRight);
-    threadLeft.join();
-    threadRight.join();
+    // Left ORB extraction
+    // thread threadLeft(&Frame::ExtractORB,this,0,imLeft);
+    // thread threadRight(&Frame::ExtractORB,this,1,imRight);
+    // threadLeft.join();
+    // threadRight.join();
+    *leftImage = &imLeft;
+    *leftKeyPoints = &mvKeys;
+    *leftDescriptors = &mDescriptors;
+    sem_post(leftSem2);
+
+    // Right ORB extraction
+    *rightImage = &imRight;
+    *rightKeyPoints = &mvKeysRight;
+    *rightDescriptors = &mDescriptorsRight;
+    sem_post(rightSem2);
+
+    sem_wait(leftSem1);
+    sem_wait(rightSem1);
 
     N = mvKeys.size();
 
@@ -273,7 +296,7 @@ bool Frame::isInFrustum(MapPoint *pMP, float viewingCosLimit)
     pMP->mbTrackInView = false;
 
     // 3D in absolute coordinates
-    cv::Mat P = pMP->GetWorldPos(); 
+    cv::Mat P = pMP->GetWorldPos();
 
     // 3D in camera coordinates
     const cv::Mat Pc = mRcw*P+mtcw;

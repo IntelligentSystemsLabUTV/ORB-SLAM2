@@ -28,6 +28,10 @@
 #include <Eigen/Core>
 #include <Eigen/Dense>
 #include <vector>
+#include <stdexcept>
+
+#include <sched.h>
+#include <pthread.h>
 
 #include "Tracking.h"
 #include "FrameDrawer.h"

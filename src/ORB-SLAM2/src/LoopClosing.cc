@@ -66,6 +66,8 @@ LoopClosing::LoopClosing(Map *pMap, KeyFrameDatabase *pDB, fbow::Vocabulary *pFb
   int _loopRate = fSettings["LoopClosing.loopRate"];
   loopRate = _loopRate == 0 ? 5000 : _loopRate;
 
+  gbaCPU = fSettings["LoopClosing.gbaCPU"];
+
   cout << endl << "Loop Closing parameters:" << endl;
   cout << "- " << "CovisibilityConsistencyTh: " << mnCovisibilityConsistencyTh << endl;
   cout << "- " << "MinimumKeyframes: " << mMinimumKeyframes << endl;
@@ -76,6 +78,7 @@ LoopClosing::LoopClosing(Map *pMap, KeyFrameDatabase *pDB, fbow::Vocabulary *pFb
   cout << "- " << "RansacMaxIterations: " << mRansacMaxIterations << endl;
   cout << "- " << "DetectionThreshold: " << mDetectionThreshold << endl;
   cout << "- " << "LoopRate: " << loopRate << endl;
+  cout << "- " << "GBACPU: " << gbaCPU << endl;
 }
 
 LoopClosing::~LoopClosing()
@@ -644,7 +647,16 @@ void LoopClosing::CorrectLoop()
     mbRunningGBA = true;
     mbFinishedGBA = false;
     mbStopGBA = false;
+    cpu_set_t gba_cpu_set;
+    CPU_ZERO(&gba_cpu_set);
+    CPU_SET(gbaCPU, &gba_cpu_set);
     mpThreadGBA = new thread(&LoopClosing::RunGlobalBundleAdjustment, this, mpCurrentKF->mnId);
+    if (pthread_setaffinity_np(mpThreadGBA->native_handle(), sizeof(cpu_set_t), &gba_cpu_set)) {
+      char err_msg_buf[100] = {};
+      char * err_msg = strerror_r(errno, err_msg_buf, 100);
+      throw std::runtime_error(
+        "ORB_SLAM2::LoopClosing::CorrectLoop: Failed to create GBA thread: " + std::string(err_msg));
+    }
 
     // Release Local Mapping
     mpLocalMapper->Release();

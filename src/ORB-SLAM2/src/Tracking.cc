@@ -104,7 +104,6 @@ Tracking::Tracking(System *pSys, fbow::Vocabulary* pFbowVoc, FrameDrawer *pFrame
         cout << "- color order: BGR (ignored if grayscale)" << endl;
 
     // Load ORB parameters
-
     int nFeatures = fSettings["ORBextractor.nFeatures"];
     float fScaleFactor = fSettings["ORBextractor.scaleFactor"];
     int nLevels = fSettings["ORBextractor.nLevels"];
@@ -117,10 +116,69 @@ Tracking::Tracking(System *pSys, fbow::Vocabulary* pFbowVoc, FrameDrawer *pFrame
     int _nEdgeThreshold = fSettings["ORBextractor.edgeThreshold"];
     nEdgeThreshold = (_nEdgeThreshold == 0) ? 19 : _nEdgeThreshold;
 
+    leftExtractorCPU = fSettings["ORBextractor.leftCPU"];
+    rightExtractorCPU = fSettings["ORBextractor.rightCPU"];
+    if (leftExtractorCPU == rightExtractorCPU) {
+      leftExtractorCPU = 0;
+      rightExtractorCPU = 1;
+    }
+
     mpORBextractorLeft = new ORBextractor(nFeatures, fScaleFactor, nLevels, fIniThFAST, fMinThFAST, nPatchSize, nHalfPatchSize, nEdgeThreshold);
 
     if (sensor == System::STEREO) {
         mpORBextractorRight = new ORBextractor(nFeatures, fScaleFactor, nLevels, fIniThFAST, fMinThFAST, nPatchSize, nHalfPatchSize, nEdgeThreshold);
+
+        // Initialize semaphores
+        if (sem_init(&leftSem1, 0, 0) || sem_init(&leftSem2, 0, 0) ||
+            sem_init(&rightSem1, 0, 0) || sem_init(&rightSem2, 0, 0)) {
+            throw std::runtime_error("Tracking::Tracking: Could not initialize feature extractors semaphores");
+        }
+
+        stopping = false;
+
+        // Create left feature extractor thread
+        cpu_set_t left_extractor_set;
+        CPU_ZERO(&left_extractor_set);
+        CPU_SET(leftExtractorCPU, &left_extractor_set);
+        leftExtractorThread = new std::thread(
+          &Tracking::ExtractorThread,
+          this,
+          mpORBextractorLeft,
+          &leftImage,
+          &leftKeyPoints,
+          &leftDescriptors,
+          &leftSem2,
+          &leftSem1);
+        if (pthread_setaffinity_np(leftExtractorThread->native_handle(), sizeof(cpu_set_t), &left_extractor_set)) {
+            char err_msg_buf[100] = {};
+            char * err_msg = strerror_r(errno, err_msg_buf, 100);
+            throw std::runtime_error(
+                "Tracking::Tracking: Failed to configure left feature extractor thread: " +
+                std::string(err_msg));
+        }
+        cout << "Left feature extractor thread created" << endl;
+
+        // Create right feature extractor thread
+        cpu_set_t right_extractor_set;
+        CPU_ZERO(&right_extractor_set);
+        CPU_SET(rightExtractorCPU, &right_extractor_set);
+        rightExtractorThread = new std::thread(
+          &Tracking::ExtractorThread,
+          this,
+          mpORBextractorRight,
+          &rightImage,
+          &rightKeyPoints,
+          &rightDescriptors,
+          &rightSem2,
+          &rightSem1);
+        if (pthread_setaffinity_np(rightExtractorThread->native_handle(), sizeof(cpu_set_t), &right_extractor_set)) {
+            char err_msg_buf[100] = {};
+            char * err_msg = strerror_r(errno, err_msg_buf, 100);
+            throw std::runtime_error(
+                "Tracking::Tracking: Failed to configure right feature extractor thread: " +
+                std::string(err_msg));
+        }
+        cout << "Right feature extractor thread created" << endl;
     } else {
         mpORBextractorRight = nullptr;
     }
@@ -140,14 +198,16 @@ Tracking::Tracking(System *pSys, fbow::Vocabulary* pFbowVoc, FrameDrawer *pFrame
     cout << "- Patch size: " << nPatchSize << endl;
     cout << "- Half patch size: " << nHalfPatchSize << endl;
     cout << "- Edge Threshold: " << nEdgeThreshold << endl;
+    cout << "- LeftExtractorCPU: " << leftExtractorCPU << endl;
+    cout << "- RightExtractorCPU: " << rightExtractorCPU << endl;
 
-    if(sensor==System::STEREO || sensor==System::RGBD)
+    if (sensor == System::STEREO || sensor == System::RGBD)
     {
-        mThDepth = mbf*(float)fSettings["ThDepth"]/fx;
-        cout << endl << "Depth Threshold (Close/Far Points): " << mThDepth << endl;
+        mThDepth = mbf * float(fSettings["ThDepth"]) / fx;
+        cout << endl << "Depth Threshold (close/far Points): " << mThDepth << endl;
     }
 
-    if(sensor==System::RGBD)
+    if (sensor == System::RGBD)
     {
         mDepthMapFactor = fSettings["DepthMapFactor"];
         if(fabs(mDepthMapFactor)<1e-5)
@@ -158,7 +218,6 @@ Tracking::Tracking(System *pSys, fbow::Vocabulary* pFbowVoc, FrameDrawer *pFrame
     if (bReuseMap)
         mState = LOST;
 
-    // New parameters read from file
     float _mReferenceKeyframeNnRatioOrbMatcher = fSettings["Tracking.referenceKeyframeNnRatioOrbMatcher"];
     mReferenceKeyframeNnRatioOrbMatcher = (_mReferenceKeyframeNnRatioOrbMatcher == 0.0) ? 0.7 : _mReferenceKeyframeNnRatioOrbMatcher;
     float _mMotionModelNnRatioOrbMatcher = fSettings["Tracking.motionModelNnRatioOrbMatcher"];
@@ -249,16 +308,37 @@ Tracking::Tracking(System *pSys, fbow::Vocabulary* pFbowVoc, FrameDrawer *pFrame
 
 Tracking::~Tracking()
 {
-  delete mpOptimizer;
+    if (mSensor == System::STEREO) {
+        stopping = true;
+        sem_post(&leftSem1);
+        sem_post(&rightSem1);
+        sem_post(&leftSem2);
+        sem_post(&rightSem2);
 
-  if (mpORBextractorLeft)
-    delete mpORBextractorLeft;
+        leftExtractorThread->join();
+        cout << "Left feature extractor terminated" << endl;
+        rightExtractorThread->join();
+        cout << "Right feature extractor terminated" << endl;
 
-  if (mpORBextractorRight)
-    delete mpORBextractorRight;
+        delete leftExtractorThread;
+        delete rightExtractorThread;
 
-  if (mpIniORBextractor)
-    delete mpIniORBextractor;
+        sem_destroy(&leftSem1);
+        sem_destroy(&leftSem2);
+        sem_destroy(&rightSem1);
+        sem_destroy(&rightSem2);
+    }
+
+    delete mpOptimizer;
+
+    if (mpORBextractorLeft)
+      delete mpORBextractorLeft;
+
+    if (mpORBextractorRight)
+      delete mpORBextractorRight;
+
+    if (mpIniORBextractor)
+      delete mpIniORBextractor;
 }
 
 void Tracking::SetLocalMapper(LocalMapping *pLocalMapper)
@@ -308,7 +388,16 @@ cv::Mat Tracking::GrabImageStereo(const cv::Mat &imRectLeft, const cv::Mat &imRe
         }
     }
 
-    mCurrentFrame = Frame(mImGray, imGrayRight, timestamp, mpORBextractorLeft, mpORBextractorRight, mpFBOWVocabulary, mK, mDistCoef, mbf, mThDepth);
+    mCurrentFrame = Frame(
+        mImGray, imGrayRight, timestamp,
+        mpORBextractorLeft, mpORBextractorRight,
+        mpFBOWVocabulary, mK,
+        mDistCoef, mbf, mThDepth,
+        &leftSem1, &leftSem2,
+        &rightSem1, &rightSem2,
+        &leftImage, &rightImage,
+        &leftKeyPoints, &rightKeyPoints,
+        &leftDescriptors, &rightDescriptors);
 
     Track();
 
@@ -620,6 +709,26 @@ void Tracking::Track()
     }
 }
 
+void Tracking::ExtractorThread(
+    ORB_SLAM2::ORBextractor * extractor,
+    cv::Mat ** image,
+    std::vector<cv::KeyPoint> ** keyPoints,
+    cv::Mat ** descriptors,
+    sem_t * sem2,
+    sem_t * sem1)
+{
+    while (true) {
+        sem_wait(sem2);
+
+        if (stopping) {
+            break;
+        }
+
+        (*extractor)(**image, cv::Mat(), **keyPoints, **descriptors);
+
+        sem_post(sem1);
+    }
+}
 
 void Tracking::StereoInitialization()
 {
