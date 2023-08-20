@@ -14,7 +14,6 @@
   <depend>dua_interfaces</depend>
   <depend>dua_node</depend>
   <depend>dua_qos</depend>
-  <depend>dua_structures</depend>
   <depend>geometry_msgs</depend>
   <depend>image_transport</depend>
   <depend>message_filters</depend>

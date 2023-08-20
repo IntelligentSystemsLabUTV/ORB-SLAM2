@@ -26,6 +26,7 @@
 #include <vector>
 
 #include <sched.h>
+#include <semaphore.h>
 
 #include <Eigen/Core>
 #include <Eigen/Dense>
@@ -44,8 +45,6 @@
 
 #include <dua_node/dua_node.hpp>
 #include <dua_qos/dua_qos.hpp>
-
-#include <thread_safe_queue/thread_safe_queue.hpp>
 
 #include <image_transport/image_transport.hpp>
 #include <image_transport/subscriber.hpp>
@@ -89,23 +88,6 @@ typedef message_filters::Synchronizer<ImageSyncPolicy> ImageSynchronizer;
 
 namespace ORB_SLAM2Driver
 {
-
-/**
- * Input data for the ORB-SLAM2 system.
- */
-struct InputData
-{
-  InputData(const cv::Mat & frame_1, const cv::Mat & frame_2, const Time & ts)
-  : camera_1_frame(frame_1), camera_2_frame(frame_2), ts(ts)
-  {}
-  ~InputData() = default;
-
-  typedef std::shared_ptr<InputData> SharedPtr;
-
-  cv::Mat camera_1_frame;
-  cv::Mat camera_2_frame;
-  Time ts;
-};
 
 /**
  * Embeds and manages the ORB-SLAM2 algorithm.
@@ -202,7 +184,11 @@ private:
   /* Worker thread, routine, and data. */
   std::thread tracking_thread_;
   void tracking_thread_routine();
-  std::shared_ptr<DUAStructures::ThreadSafeQueue<InputData::SharedPtr>> input_queue_;
+  sem_t tracking_sem_1_;
+  sem_t tracking_sem_2_;
+  cv::Mat camera_1_frame_;
+  cv::Mat camera_2_frame_;
+  Time frame_ts_;
 
   /* Internal state variables. */
   std::atomic<bool> running_;

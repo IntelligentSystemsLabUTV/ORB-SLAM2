@@ -103,14 +103,12 @@ void ORB_SLAM2DriverNode::stereo_callback(
     frame_2_input = frame_2;
   }
 
-  // Create new input data buffer
-  auto new_input = std::make_shared<InputData>(
-    frame_1_input,
-    frame_2_input,
-    camera_1_msg->header.stamp);
-
-  // Push it into the queue
-  input_queue_->push(new_input);
+  // Forward frames to tracking thread
+  sem_wait(&tracking_sem_1_);
+  camera_1_frame_ = frame_1_input.clone();
+  camera_2_frame_ = frame_2_input.clone();
+  frame_ts_ = camera_1_msg->header.stamp;
+  sem_post(&tracking_sem_2_);
 }
 
 } // namespace ORB_SLAM2Driver

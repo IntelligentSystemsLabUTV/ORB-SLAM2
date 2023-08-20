@@ -30,8 +30,16 @@ bool ORB_SLAM2DriverNode::init_orbslam2()
       this,
       std::placeholders::_1));
 
-  // Initialize input data queue
-  input_queue_ = std::make_shared<DUAStructures::ThreadSafeQueue<InputData::SharedPtr>>();
+  // Initialize synchronization primitives
+  if (sem_init(&tracking_sem_1_, 0, 1) ||
+    sem_init(&tracking_sem_2_, 0, 0))
+  {
+    char err_msg_buf[100] = {};
+    char * err_msg = strerror_r(errno, err_msg_buf, 100);
+    throw std::runtime_error(
+            "ORB_SLAM2DriverNode::init_orbslam2: Failed to initialize semaphores: " +
+            std::string(err_msg));
+  }
 
   // Subscribe to camera topics
   int64_t depth = this->get_parameter("subscriber_depth").as_int();
@@ -120,7 +128,8 @@ void ORB_SLAM2DriverNode::fini_orbslam2()
   camera_imu_sub_.reset();
 
   running_.store(false, std::memory_order_release);
-  input_queue_->notify();
+  sem_post(&tracking_sem_1_);
+  sem_post(&tracking_sem_2_);
   tracking_thread_.join();
 
   orb2_->Shutdown();
@@ -128,7 +137,8 @@ void ORB_SLAM2DriverNode::fini_orbslam2()
 
   frame_drawer_pub_.reset();
 
-  input_queue_.reset();
+  sem_destroy(&tracking_sem_1_);
+  sem_destroy(&tracking_sem_2_);
 
   RCLCPP_WARN(this->get_logger(), "Tracking thread stopped");
 }
