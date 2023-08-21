@@ -86,8 +86,11 @@ public:
 
   bool isFinished();
 
-  long unsigned int GetLoopCount() {
-    return loopCnt;
+  inline long unsigned int GetLoopCount() {
+      return loopCnt;
+  }
+  inline void SetLoopCount(long unsigned int & cnt) {
+      loopCnt = cnt;
   }
 
   EIGEN_MAKE_ALIGNED_OPERATOR_NEW

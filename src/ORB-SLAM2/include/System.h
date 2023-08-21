@@ -195,6 +195,7 @@ private:
 
     string mapfile;
     bool is_save_map;
+    long unsigned int initLoopCount;
     bool replayer;
 
     // Tracker. It receives a frame and computes the associated camera pose.

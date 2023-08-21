@@ -82,10 +82,11 @@ System::System(const string &strVocFile, const string &strSettingsFile, const eS
     mCameraFy = fsSettings["Camera.fy"];
 
     // Create KeyFrame Database and Map
+    bool loaded_map = false;
     if (!mapfile.empty()) {
         if (LoadMap(mapfile)) {
             bReuseMap = true;
-            //is_save_map = false;
+            loaded_map = true;
         } else {
             mpKeyFrameDatabase = new KeyFrameDatabase(mpFBOWVocabulary);
             mpMap = new Map();
@@ -107,6 +108,9 @@ System::System(const string &strVocFile, const string &strSettingsFile, const eS
 
     // Initialize the Loop Closing module
     mpLoopCloser = new LoopClosing(mpMap, mpKeyFrameDatabase, mpFBOWVocabulary, mSensor != MONOCULAR, strSettingsFile);
+    if (loaded_map) {
+        mpLoopCloser->SetLoopCount(initLoopCount);
+    }
 
     // Initialize the Viewer module
     if (bUseViewer) {
@@ -964,6 +968,7 @@ void System::SaveMap(const string & filename)
     boost::archive::binary_oarchive oa(out, boost::archive::no_header);
     oa << mpMap;
     oa << mpKeyFrameDatabase;
+    oa << mpLoopCloser->GetLoopCount();
     out.close();
     cout << " done" << std::endl;
 }
@@ -979,6 +984,7 @@ bool System::LoadMap(const string &filename)
     boost::archive::binary_iarchive ia(in, boost::archive::no_header);
     ia >> mpMap;
     ia >> mpKeyFrameDatabase;
+    ia >> initLoopCount;
     mpKeyFrameDatabase->SetFBOWvocabulary(mpFBOWVocabulary);
     cout << " done" << std::endl;
     cout << "Rebuilding map from archive..." << flush;

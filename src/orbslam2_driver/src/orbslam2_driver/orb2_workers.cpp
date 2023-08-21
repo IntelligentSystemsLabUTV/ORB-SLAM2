@@ -22,6 +22,7 @@ void ORB_SLAM2DriverNode::tracking_thread_routine()
   double frame_ts = 0.0;
   ORB_SLAM2::Tracking::eTrackingState last_tracking_state = ORB_SLAM2::Tracking::OK;
   uint32_t loop_cnt = 0;
+  bool first_run = true;
 
   while (true) {
     // Get input data from the subscriber
@@ -124,11 +125,16 @@ void ORB_SLAM2DriverNode::tracking_thread_routine()
     // Publish loops count
     uint64_t curr_loops = orb2_->GetLoopCount();
     if (curr_loops > loop_cnt) {
+      if (first_run) {
+        RCLCPP_INFO(this->get_logger(), "Loaded map with %ld loops closed", curr_loops);
+      } else {
+        RCLCPP_WARN(this->get_logger(), "Closed loop: %ld", curr_loops);
+      }
+
       loop_cnt = curr_loops;
       UInt64 loops_msg{};
       loops_msg.set__data(curr_loops);
       loops_pub_->publish(loops_msg);
-      RCLCPP_WARN(this->get_logger(), "Closed loop: %ld", curr_loops);
     }
 
     // Publish FrameDrawer frame
@@ -138,6 +144,8 @@ void ORB_SLAM2DriverNode::tracking_thread_routine()
       frame_drawer_msg->header.set__stamp(orb2_pose.get_header().stamp);
       frame_drawer_pub_->publish(frame_drawer_msg);
     }
+
+    first_run = false;
   }
 }
 
