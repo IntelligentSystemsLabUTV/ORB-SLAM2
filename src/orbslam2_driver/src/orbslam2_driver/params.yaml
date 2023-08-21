@@ -122,13 +122,13 @@ params:
 
   tracking_cpu:
     type: integer
-    default_value: 2
-    min_value: 0
-    max_value: 31
+    default_value: -1
+    min_value: -1
+    max_value: 255
     step: 1
     description: "Tracking thread CPU."
-    constraints: "Changes require system restart."
-    read_only: false
+    constraints: "-1 means no affinity."
+    read_only: true
     var_name: tracking_cpu_
 
   transport:

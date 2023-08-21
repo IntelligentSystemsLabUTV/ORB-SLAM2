@@ -98,18 +98,24 @@ bool ORB_SLAM2DriverNode::init_orbslam2()
 
   // Spawn tracking thread
   running_.store(true, std::memory_order_release);
-  cpu_set_t tracking_cpu_set;
-  CPU_ZERO(&tracking_cpu_set);
-  CPU_SET(tracking_cpu_, &tracking_cpu_set);
   tracking_thread_ = std::thread(
     &ORB_SLAM2DriverNode::tracking_thread_routine,
     this);
-  if (pthread_setaffinity_np(tracking_thread_.native_handle(), sizeof(cpu_set_t), &tracking_cpu_set)) {
-    char err_msg_buf[100] = {};
-    char * err_msg = strerror_r(errno, err_msg_buf, 100);
-    throw std::runtime_error(
-            "ORB_SLAM2DriverNode::init_orbslam2: Failed to configure tracking thread: " +
-            std::string(err_msg));
+  if (tracking_cpu_ != -1) {
+    cpu_set_t tracking_cpu_set;
+    CPU_ZERO(&tracking_cpu_set);
+    CPU_SET(tracking_cpu_, &tracking_cpu_set);
+    if (pthread_setaffinity_np(
+        tracking_thread_.native_handle(),
+        sizeof(cpu_set_t),
+        &tracking_cpu_set))
+    {
+      char err_msg_buf[100] = {};
+      char * err_msg = strerror_r(errno, err_msg_buf, 100);
+      throw std::runtime_error(
+              "ORB_SLAM2DriverNode::init_orbslam2: Failed to configure tracking thread: " +
+              std::string(err_msg));
+    }
   }
 
   RCLCPP_WARN(this->get_logger(), "Tracking thread started");

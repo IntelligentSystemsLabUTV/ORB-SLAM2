@@ -118,7 +118,7 @@ Tracking::Tracking(System *pSys, fbow::Vocabulary* pFbowVoc, FrameDrawer *pFrame
 
     leftExtractorCPU = fSettings["ORBextractor.leftCPU"];
     rightExtractorCPU = fSettings["ORBextractor.rightCPU"];
-    if (leftExtractorCPU == rightExtractorCPU) {
+    if (leftExtractorCPU == rightExtractorCPU && leftExtractorCPU != -1) {
       leftExtractorCPU = 0;
       rightExtractorCPU = 1;
     }
@@ -137,46 +137,50 @@ Tracking::Tracking(System *pSys, fbow::Vocabulary* pFbowVoc, FrameDrawer *pFrame
         stopping = false;
 
         // Create left feature extractor thread
-        cpu_set_t left_extractor_set;
-        CPU_ZERO(&left_extractor_set);
-        CPU_SET(leftExtractorCPU, &left_extractor_set);
         leftExtractorThread = new std::thread(
-          &Tracking::ExtractorThread,
-          this,
-          mpORBextractorLeft,
-          &leftImage,
-          &leftKeyPoints,
-          &leftDescriptors,
-          &leftSem2,
-          &leftSem1);
-        if (pthread_setaffinity_np(leftExtractorThread->native_handle(), sizeof(cpu_set_t), &left_extractor_set)) {
-            char err_msg_buf[100] = {};
-            char * err_msg = strerror_r(errno, err_msg_buf, 100);
-            throw std::runtime_error(
-                "Tracking::Tracking: Failed to configure left feature extractor thread: " +
-                std::string(err_msg));
+            &Tracking::ExtractorThread,
+            this,
+            mpORBextractorLeft,
+            &leftImage,
+            &leftKeyPoints,
+            &leftDescriptors,
+            &leftSem2,
+            &leftSem1);
+        if (leftExtractorCPU != -1) {
+            cpu_set_t left_extractor_set;
+            CPU_ZERO(&left_extractor_set);
+            CPU_SET(leftExtractorCPU, &left_extractor_set);
+            if (pthread_setaffinity_np(leftExtractorThread->native_handle(), sizeof(cpu_set_t), &left_extractor_set)) {
+                char err_msg_buf[100] = {};
+                char * err_msg = strerror_r(errno, err_msg_buf, 100);
+                throw std::runtime_error(
+                    "Tracking::Tracking: Failed to configure left feature extractor thread: " +
+                    std::string(err_msg));
+            }
         }
         cout << "Left feature extractor thread created" << endl;
 
         // Create right feature extractor thread
-        cpu_set_t right_extractor_set;
-        CPU_ZERO(&right_extractor_set);
-        CPU_SET(rightExtractorCPU, &right_extractor_set);
         rightExtractorThread = new std::thread(
-          &Tracking::ExtractorThread,
-          this,
-          mpORBextractorRight,
-          &rightImage,
-          &rightKeyPoints,
-          &rightDescriptors,
-          &rightSem2,
-          &rightSem1);
-        if (pthread_setaffinity_np(rightExtractorThread->native_handle(), sizeof(cpu_set_t), &right_extractor_set)) {
-            char err_msg_buf[100] = {};
-            char * err_msg = strerror_r(errno, err_msg_buf, 100);
-            throw std::runtime_error(
-                "Tracking::Tracking: Failed to configure right feature extractor thread: " +
-                std::string(err_msg));
+            &Tracking::ExtractorThread,
+            this,
+            mpORBextractorRight,
+            &rightImage,
+            &rightKeyPoints,
+            &rightDescriptors,
+            &rightSem2,
+            &rightSem1);
+        if (rightExtractorCPU != -1) {
+            cpu_set_t right_extractor_set;
+            CPU_ZERO(&right_extractor_set);
+            CPU_SET(rightExtractorCPU, &right_extractor_set);
+            if (pthread_setaffinity_np(rightExtractorThread->native_handle(), sizeof(cpu_set_t), &right_extractor_set)) {
+                char err_msg_buf[100] = {};
+                char * err_msg = strerror_r(errno, err_msg_buf, 100);
+                throw std::runtime_error(
+                    "Tracking::Tracking: Failed to configure right feature extractor thread: " +
+                    std::string(err_msg));
+            }
         }
         cout << "Right feature extractor thread created" << endl;
     } else {

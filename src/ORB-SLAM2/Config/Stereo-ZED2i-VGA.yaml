@@ -78,10 +78,10 @@ ORBextractor.halfPatchSize: 15
 ORBextractor.edgeThreshold: 19
 
 # CPU cores to use for feature extraction on L/R frames
-# Default: 0, 1
+# Default: -1, -1 (no affinity)
 # WARNING: Setting these equal or equal to the tracking thread CPU can cause a bottleneck.
-ORBextractor.leftCPU: 0
-ORBextractor.rightCPU: 1
+ORBextractor.leftCPU: -1
+ORBextractor.rightCPU: -1
 
 #--------------------------------------------------------------------------------------------
 # Loop Closing parameters
@@ -129,12 +129,12 @@ LoopClosing.detectionThreshold: 40
 LoopClosing.loopRate: 5000
 
 # Loop Closing thread CPU
-# Default: 2
-LoopClosing.CPU: 2
+# Default: -1 (no affinity)
+LoopClosing.CPU: -1
 
 # Global Bundle Adjustment thread CPU
-# Default: 3
-LoopClosing.gbaCPU: 3
+# Default: -1 (no affinity)
+LoopClosing.gbaCPU: -1
 
 #--------------------------------------------------------------------------------------------
 # Local Mapping parameters
@@ -146,8 +146,8 @@ LoopClosing.gbaCPU: 3
 LocalMapping.loopRate: 3000
 
 # Local Mapping thread CPU
-# Default: 4
-LocalMapping.CPU: 4
+# Default: -1 (no affinity)
+LocalMapping.CPU: -1
 
 #--------------------------------------------------------------------------------------------
 # Optimizer parameters
