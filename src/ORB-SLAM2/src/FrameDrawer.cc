@@ -147,6 +147,7 @@ void FrameDrawer::DrawTextInfo(cv::Mat &im, int nState, cv::Mat &imText)
         s << "KFs: " << nKFs << ", MPs: " << nMPs << ", Matches: " << mnTracked;
         if(mnTrackedVO>0)
             s << ", + VO matches: " << mnTrackedVO;
+        s << ", Loops: " << mLoops;
     }
     else if(nState==Tracking::LOST)
     {
@@ -175,31 +176,26 @@ void FrameDrawer::Update(Tracking *pTracker)
     mvbVO = vector<bool>(N,false);
     mvbMap = vector<bool>(N,false);
     mbOnlyTracking = pTracker->mbOnlyTracking;
+    mLoops = pTracker->mLoops;
 
 
-    if(pTracker->mLastProcessedState==Tracking::NOT_INITIALIZED)
-    {
-        mvIniKeys=pTracker->mInitialFrame.mvKeys;
-        mvIniMatches=pTracker->mvIniMatches;
-    }
-    else if(pTracker->mLastProcessedState==Tracking::OK)
-    {
-        for(int i=0;i<N;i++)
-        {
+    if (pTracker->mLastProcessedState == Tracking::NOT_INITIALIZED) {
+        mvIniKeys = pTracker->mInitialFrame.mvKeys;
+        mvIniMatches = pTracker->mvIniMatches;
+    } else if( pTracker->mLastProcessedState == Tracking::OK) {
+        for (int i = 0; i < N; i++) {
             MapPoint* pMP = pTracker->mCurrentFrame.mvpMapPoints[i];
-            if(pMP)
-            {
-                if(!pTracker->mCurrentFrame.mvbOutlier[i])
-                {
-                    if(pMP->Observations()>0)
-                        mvbMap[i]=true;
+            if (pMP) {
+                if (!pTracker->mCurrentFrame.mvbOutlier[i]) {
+                    if (pMP->Observations() > 0)
+                        mvbMap[i] = true;
                     else
-                        mvbVO[i]=true;
+                        mvbVO[i] = true;
                 }
             }
         }
     }
-    mState=static_cast<int>(pTracker->mLastProcessedState);
+    mState = static_cast<int>(pTracker->mLastProcessedState);
 }
 
 } // namespace ORB_SLAM2

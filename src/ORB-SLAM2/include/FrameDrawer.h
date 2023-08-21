@@ -62,6 +62,7 @@ protected:
     std::vector<cv::KeyPoint> mvIniKeys;
     std::vector<int> mvIniMatches;
     int mState;
+    long unsigned int mLoops;
 
     Map* mpMap;
 

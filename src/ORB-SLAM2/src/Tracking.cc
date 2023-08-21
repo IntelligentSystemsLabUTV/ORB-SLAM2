@@ -617,6 +617,8 @@ void Tracking::Track()
         else
             mState=LOST;
 
+        mLoops = mpSystem->GetLoopCount();
+
         // Update drawer
         mpFrameDrawer->Update(this);
 

@@ -118,6 +118,9 @@ public:
     list<double> mlFrameTimes;
     list<bool> mlbLost;
 
+    // Closed loops counter
+    long unsigned int mLoops;
+
     // True if local mapping is deactivated and we are performing only localization
     bool mbOnlyTracking;
 
