@@ -86,10 +86,6 @@ Frame::Frame(
     mvInvLevelSigma2 = mpORBextractorLeft->GetInverseScaleSigmaSquares();
 
     // Left ORB extraction
-    // thread threadLeft(&Frame::ExtractORB,this,0,imLeft);
-    // thread threadRight(&Frame::ExtractORB,this,1,imRight);
-    // threadLeft.join();
-    // threadRight.join();
     *leftImage = &imLeft;
     *leftKeyPoints = &mvKeys;
     *leftDescriptors = &mDescriptors;
