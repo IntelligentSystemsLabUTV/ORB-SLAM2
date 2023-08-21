@@ -7,6 +7,8 @@
  * July 1, 2023
  */
 
+#define UNUSED(arg) (void)(arg)
+
 #include <orbslam2_driver/orbslam2_driver.hpp>
 
 namespace ORB_SLAM2Driver
@@ -89,6 +91,29 @@ void ORB_SLAM2DriverNode::localization_callback(
       resp->set__message("");
       RCLCPP_INFO(this->get_logger(), "Localization mode deactivated");
     }
+  }
+}
+
+/**
+ * @brief Reset service callback.
+ *
+ * @param req Service request.
+ * @param resp Service response.
+ */
+void ORB_SLAM2DriverNode::reset_callback(
+  const Trigger::Request::SharedPtr req,
+  const Trigger::Response::SharedPtr resp)
+{
+  UNUSED(req);
+
+  if (running_.load(std::memory_order_acquire)) {
+    RCLCPP_WARN(this->get_logger(), "ORB-SLAM2 system reset requested");
+    orb2_->Reset();
+    resp->set__success(true);
+    resp->set__message("");
+  } else {
+    resp->set__success(false);
+    resp->set__message("ORB-SLAM2 system not running");
   }
 }
 

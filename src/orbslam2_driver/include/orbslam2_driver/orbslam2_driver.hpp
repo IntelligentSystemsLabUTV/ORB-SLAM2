@@ -73,6 +73,7 @@
 #include <visualization_msgs/msg/marker_array.hpp>
 
 #include <std_srvs/srv/set_bool.hpp>
+#include <std_srvs/srv/trigger.hpp>
 
 using namespace builtin_interfaces::msg;
 using namespace dua_interfaces::msg;
@@ -138,6 +139,7 @@ private:
   /* Service servers. */
   rclcpp::Service<SetBool>::SharedPtr enable_srv_;
   rclcpp::Service<SetBool>::SharedPtr localization_srv_;
+  rclcpp::Service<Trigger>::SharedPtr reset_srv_;
 
   /* Service callbacks. */
   void enable_callback(
@@ -146,6 +148,9 @@ private:
   void localization_callback(
     SetBool::Request::SharedPtr req,
     SetBool::Response::SharedPtr res);
+  void reset_callback(
+    Trigger::Request::SharedPtr req,
+    Trigger::Response::SharedPtr res);
 
   /* image_transport subscribers and synchronizers. */
   std::shared_ptr<image_transport::SubscriberFilter> camera_1_sub_;

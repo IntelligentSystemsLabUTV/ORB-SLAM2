@@ -113,6 +113,15 @@ void ORB_SLAM2DriverNode::init_services()
       this,
       std::placeholders::_1,
       std::placeholders::_2));
+
+  // reset
+  reset_srv_ = this->create_service<Trigger>(
+    "~/reset",
+    std::bind(
+      &ORB_SLAM2DriverNode::reset_callback,
+      this,
+      std::placeholders::_1,
+      std::placeholders::_2));
 }
 
 /**
