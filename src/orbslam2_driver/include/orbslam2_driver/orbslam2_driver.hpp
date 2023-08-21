@@ -170,6 +170,7 @@ private:
   std::string mode_str_;
   bool preconvert_frames_;
   std::string orb2_config_path_;
+  bool save_map_;
   bool start_localization_;
   int64_t tracking_cpu_;
   std::string transport_;
@@ -179,6 +180,7 @@ private:
   /* Node parameters validators. */
   bool validate_frame_view(const rclcpp::Parameter & p);
   bool validate_mode(const rclcpp::Parameter & p);
+  bool validate_save_map(const rclcpp::Parameter & p);
   bool validate_transport(const rclcpp::Parameter & p);
 
   /* Worker thread, routine, and data. */

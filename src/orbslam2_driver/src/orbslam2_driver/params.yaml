@@ -94,6 +94,14 @@ params:
     read_only: false
     var_name: orb2_config_path_
 
+  save_map:
+    type: bool
+    default_value: false
+    description: "Saves the map to a file when the system is shut down."
+    constraints: "Can be changed only when the system is not active; the map file name must be specified in the main config file; if existing, it will be preloaded and overwritten."
+    read_only: false
+    validator: validate_save_map
+
   start_localization:
     type: bool
     default_value: false

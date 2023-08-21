@@ -90,7 +90,7 @@ bool ORB_SLAM2DriverNode::init_orbslam2()
     orb2_config_path_,
     mode_,
     display_,
-    false,
+    save_map_,
     false);
   if (localization_.load(std::memory_order_acquire)) {
     orb2_->ActivateLocalizationMode();
@@ -252,6 +252,25 @@ bool ORB_SLAM2DriverNode::validate_mode(const rclcpp::Parameter & p)
   }
 
   mode_str_ = mode_str;
+  return true;
+}
+
+/**
+ * @brief Validates the save_map parameter.
+ *
+ * @param p The parameter to validate.
+ * @return True if the parameter is valid, false otherwise.
+ */
+bool ORB_SLAM2DriverNode::validate_save_map(const rclcpp::Parameter & p)
+{
+  if (running_.load(std::memory_order_acquire)) {
+    RCLCPP_ERROR(
+      this->get_logger(),
+      "ORB_SLAM2DriverNode::validate_save_map: Cannot change save_map while the system is running");
+    return false;
+  }
+
+  save_map_ = p.as_bool();
   return true;
 }
 

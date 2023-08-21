@@ -11,6 +11,7 @@
     mode: STEREO
     preconvert_frames: true
     orb2_config_path: /home/neo/workspace/src/orbslam2_driver/config/ORB2_ZED2i_Stereo_VGA.yaml
+    save_map: false
     start_localization: false
     subscriber_depth: 30
     tracking_cpu: 2

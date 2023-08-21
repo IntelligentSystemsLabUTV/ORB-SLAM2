@@ -64,12 +64,9 @@ System::System(const string &strVocFile, const string &strSettingsFile, const eS
 
     cv::FileNode mapfilen = fsSettings["Map.mapfile"];
     bool bReuseMap = false;
-    if (!mapfilen.empty())
-    {
-        mapfile = (string)mapfilen;
-    }
-    else if (is_save_map)
-    {
+    if (!mapfilen.empty()) {
+        mapfile = std::string(mapfilen);
+    } else if (is_save_map) {
         cerr << "ORB_SLAM2::System::System: No map file has been specified in configuration file" << endl;
         throw std::runtime_error("ORB_SLAM2::System::System: No map file has been specified in configuration file");
     }
@@ -84,11 +81,11 @@ System::System(const string &strVocFile, const string &strSettingsFile, const eS
     mCameraFx = fsSettings["Camera.fx"];
     mCameraFy = fsSettings["Camera.fy"];
 
-    // Create KeyFrame database and the map
+    // Create KeyFrame Database and Map
     if (!mapfile.empty()) {
         if (LoadMap(mapfile)) {
             bReuseMap = true;
-            is_save_map = false;
+            //is_save_map = false;
         } else {
             mpKeyFrameDatabase = new KeyFrameDatabase(mpFBOWVocabulary);
             mpMap = new Map();
@@ -957,7 +954,7 @@ std::vector<Eigen::Vector3f> System::GetMap(bool wait_gba)
 
 void System::SaveMap(const string & filename)
 {
-    std::ofstream out(filename, std::ios_base::binary);
+    std::ofstream out(filename, std::ios_base::binary | std::ios_base::trunc);
     if (!out)
     {
         cerr << "ORB_SLAM2::System::SaveMap: Cannot write to file: " << filename << std::endl;
