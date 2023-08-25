@@ -22,13 +22,15 @@ namespace ORB_SLAM2Driver
 bool ORB_SLAM2DriverNode::init_orbslam2()
 {
   // Subscribe to camera orientation topic
-  camera_imu_sub_ = this->create_subscription<Imu>(
-    camera_orientation_topic_,
-    DUAQoS::get_datum_qos(),
-    std::bind(
-      &ORB_SLAM2DriverNode::camera_imu_callback,
-      this,
-      std::placeholders::_1));
+  if (global_frame_id_.empty()) {
+    camera_imu_sub_ = this->create_subscription<Imu>(
+      camera_orientation_topic_,
+      DUAQoS::get_datum_qos(),
+      std::bind(
+        &ORB_SLAM2DriverNode::camera_imu_callback,
+        this,
+        std::placeholders::_1));
+  }
 
   // Initialize synchronization primitives
   if (sem_init(&tracking_sem_1_, 0, 1) ||
@@ -180,7 +182,7 @@ cv::Mat ORB_SLAM2DriverNode::image_to_cv_mat(const Image::ConstSharedPtr & msg)
  */
 PoseKit::Pose ORB_SLAM2DriverNode::hpose_to_pose(
   const ORB_SLAM2::HPose & hpose,
-  std::string && frame_id,
+  std::string & frame_id,
   const Time & ts,
   const cv::Mat & cov)
 {
@@ -228,6 +230,24 @@ bool ORB_SLAM2DriverNode::validate_frame_view(const rclcpp::Parameter & p)
   }
 
   frame_view_ = p.as_bool();
+  return true;
+}
+
+/**
+ * @brief Validates the global_frame_id parameter.
+ *
+ * @param p The parameter to validate.
+ * @return True if the parameter is valid, false otherwise.
+ */
+bool ORB_SLAM2DriverNode::validate_global_frame_id(const rclcpp::Parameter & p) {
+  if (running_.load(std::memory_order_acquire)) {
+    RCLCPP_ERROR(
+      this->get_logger(),
+      "ORB_SLAM2DriverNode::validate_global_frame_id: Cannot change global_frame_id while the system is running");
+    return false;
+  }
+
+  global_frame_id_ = p.as_string();
   return true;
 }
 

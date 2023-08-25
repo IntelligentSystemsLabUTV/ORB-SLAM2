@@ -59,6 +59,7 @@
 #include <tf2/exceptions.h>
 #include <tf2_ros/buffer.h>
 #include <tf2_ros/transform_listener.h>
+#include <tf2_eigen/tf2_eigen.hpp>
 
 #include <builtin_interfaces/msg/time.hpp>
 #include <dua_interfaces/msg/point_cloud2_with_roi.hpp>
@@ -111,12 +112,14 @@ private:
   std::string map_frame_;
   std::string odom_frame_;
   std::string orb2_odom_frame_;
+  std::string orb2_map_frame_;
   std::shared_ptr<tf2_ros::Buffer> tf_buffer_;
   std::shared_ptr<tf2_ros::TransformListener> tf_listener_;
   std::mutex tf_lock_;
   TransformStamped odom_to_camera_odom_{};
   TransformStamped base_link_to_camera_{};
   TransformStamped map_to_camera_odom_{};
+  TransformStamped global_to_orb2_map_{};
   rclcpp::TimerBase::SharedPtr tf_timer_;
   void tf_timer_callback();
 
@@ -170,6 +173,7 @@ private:
   double covariance_scaling_factor_;
   bool display_;
   bool frame_view_;
+  std::string global_frame_id_;
   std::string link_namespace_;
   ORB_SLAM2::System::eSensor mode_ = ORB_SLAM2::System::eSensor::STEREO;
   std::string mode_str_;
@@ -184,6 +188,7 @@ private:
 
   /* Node parameters validators. */
   bool validate_frame_view(const rclcpp::Parameter & p);
+  bool validate_global_frame_id(const rclcpp::Parameter & p);
   bool validate_mode(const rclcpp::Parameter & p);
   bool validate_save_map(const rclcpp::Parameter & p);
   bool validate_transport(const rclcpp::Parameter & p);
@@ -212,7 +217,7 @@ private:
   cv::Mat image_to_cv_mat(const Image::ConstSharedPtr & msg);
   PoseKit::Pose hpose_to_pose(
     const ORB_SLAM2::HPose & hpose,
-    std::string && frame_id,
+    std::string & frame_id,
     const Time & ts,
     const cv::Mat & cov = cv::Mat::zeros(6, 6, CV_32F));
   Image::SharedPtr frame_to_msg(cv::Mat & frame);

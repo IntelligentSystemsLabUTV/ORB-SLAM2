@@ -19,7 +19,7 @@ namespace ORB_SLAM2Driver
  */
 void ORB_SLAM2DriverNode::tf_timer_callback()
 {
-  TransformStamped odom_to_camera_odom{}, map_to_camera_odom{};
+  TransformStamped odom_to_camera_odom{}, map_to_camera_odom{}, global_to_orb2_map{};
 
   // Start listening
   // odom -> orb2_odom, base_link -> orb2_link (it's rigid)
@@ -42,7 +42,7 @@ void ORB_SLAM2DriverNode::tf_timer_callback()
     RCLCPP_INFO(this->get_logger(), "TF exception: %s", e.what());
   }
 
-  // map -> zedm_odom
+  // map -> orb2_odom
   try {
     map_to_camera_odom = tf_buffer_->lookupTransform(
       map_frame_,
@@ -57,6 +57,25 @@ void ORB_SLAM2DriverNode::tf_timer_callback()
     NOOP;
   } catch (const tf2::TransformException & e) {
     RCLCPP_INFO(this->get_logger(), "TF exception: %s", e.what());
+  }
+
+  // global_frame -> orb2_map
+  if (!global_frame_id_.empty()) {
+    try {
+      global_to_orb2_map = tf_buffer_->lookupTransform(
+        global_frame_id_,
+        orb2_map_frame_,
+        tf2::TimePointZero,
+        tf2::durationFromSec(1.0));
+
+      tf_lock_.lock();
+      global_to_orb2_map_ = global_to_orb2_map;
+      tf_lock_.unlock();
+    } catch (const tf2::TimeoutException & e) {
+      NOOP;
+    } catch (const tf2::TransformException & e) {
+      RCLCPP_INFO(this->get_logger(), "TF exception: %s", e.what());
+    }
   }
 }
 

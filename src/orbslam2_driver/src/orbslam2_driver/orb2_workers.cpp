@@ -45,7 +45,7 @@ void ORB_SLAM2DriverNode::tracking_thread_routine()
       cv::Mat cov_mat = covariance_scaling_factor_ * orb2_->GetCurrentCovarianceMatrix(true);
       orb2_pose = hpose_to_pose(
         orb2_hpose,
-        link_namespace_ + "orb2_odom",
+        global_frame_id_.empty() ? orb2_odom_frame_ : orb2_map_frame_,
         frame_ts_ros,
         cov_mat);
     } else {
@@ -88,32 +88,61 @@ void ORB_SLAM2DriverNode::tracking_thread_routine()
         break;
     }
 
-    // Apply initial transformation
-    Eigen::Isometry3d orb2_iso = orb2_pose.get_isometry();
-    init_pose_lock_.lock();
-    Eigen::EulerAnglesXYZd init_rpy(
-      init_pose_.get_rpy().alpha(),
-      init_pose_.get_rpy().beta(),
-      0.0);
-    init_pose_lock_.unlock();
-    Eigen::Isometry3d init_iso = Eigen::Isometry3d::Identity();
-    init_iso.rotate(init_rpy.toRotationMatrix());
-    Eigen::Isometry3d orb2_corrected_iso = init_iso * orb2_iso;
-    orb2_pose.set_position(orb2_corrected_iso.translation());
-    orb2_pose.set_attitude(Eigen::Quaterniond(orb2_corrected_iso.rotation()));
+    // Apply initial transformation, or global_frame -> orb2_map
+    if (global_frame_id_.empty()) {
+      Eigen::Isometry3d orb2_iso = orb2_pose.get_isometry();
+      init_pose_lock_.lock();
+      Eigen::EulerAnglesXYZd init_rpy(
+        init_pose_.get_rpy().alpha(),
+        init_pose_.get_rpy().beta(),
+        0.0);
+      init_pose_lock_.unlock();
+      Eigen::Isometry3d init_iso = Eigen::Isometry3d::Identity();
+      init_iso.rotate(init_rpy.toRotationMatrix());
+      Eigen::Isometry3d orb2_corrected_iso = init_iso * orb2_iso;
+      orb2_pose.set_position(orb2_corrected_iso.translation());
+      orb2_pose.set_attitude(Eigen::Quaterniond(orb2_corrected_iso.rotation()));
+    } else {
+      Eigen::Isometry3d orb2_iso = orb2_pose.get_isometry();
+      tf_lock_.lock();
+      Eigen::Isometry3d global_to_orb2_map_iso = tf2::transformToEigen(global_to_orb2_map_);
+      tf_lock_.unlock();
+      Eigen::Isometry3d orb2_corrected_iso = global_to_orb2_map_iso * orb2_iso;
+      orb2_pose.set_position(orb2_corrected_iso.translation());
+      orb2_pose.set_attitude(Eigen::Quaterniond(orb2_corrected_iso.rotation()));
+      orb2_pose.set_frame_id(global_frame_id_);
+    }
 
     // Get base_link pose
     PoseKit::Pose base_link_pose = orb2_pose;
-    try {
-      tf_lock_.lock();
-      base_link_pose.track_parent(odom_to_camera_odom_);
-      tf_lock_.unlock();
-    } catch (const std::exception & e) {
-      RCLCPP_ERROR(
-        this->get_logger(),
-        "ORB_SLAM2DriverNode::tracking_thread_routine: base_link_pose::track_parent: %s",
-        e.what());
-      tf_lock_.unlock();
+    if (global_frame_id_.empty()) {
+      try {
+        tf_lock_.lock();
+        base_link_pose.track_parent(odom_to_camera_odom_);
+        tf_lock_.unlock();
+      } catch (const std::exception & e) {
+        RCLCPP_ERROR(
+          this->get_logger(),
+          "ORB_SLAM2DriverNode::tracking_thread_routine: base_link_pose::track_parent: %s",
+          e.what());
+        tf_lock_.unlock();
+      }
+    } else {
+      // For a moment, we pretend that the 'frame_id' fields denote the frame id of the frame that the pose
+      // tracks, and not the one w.r.t. they are expressed, just to be able to apply track_parent
+      base_link_pose.set_frame_id(link_namespace_ + "orb2_link");
+      try {
+        tf_lock_.lock();
+        base_link_pose.track_parent(base_link_to_camera_);
+        tf_lock_.unlock();
+      } catch (const std::exception & e) {
+        RCLCPP_ERROR(
+          this->get_logger(),
+          "ORB_SLAM2DriverNode::tracking_thread_routine: base_link_pose::track_parent: %s",
+          e.what());
+        tf_lock_.unlock();
+      }
+      base_link_pose.set_frame_id(global_frame_id_);
     }
 
     // Publish pose messages

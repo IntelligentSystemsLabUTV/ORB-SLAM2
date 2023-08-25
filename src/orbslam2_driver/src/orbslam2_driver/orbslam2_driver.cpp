@@ -137,12 +137,15 @@ void ORB_SLAM2DriverNode::init_tf_listeners()
   map_frame_ = "map";
   odom_frame_ = link_namespace_ + "odom";
   orb2_odom_frame_ = link_namespace_ + "orb2_odom";
+  orb2_map_frame_ = link_namespace_ + "orb2_map";
   odom_to_camera_odom_.header.set__frame_id(odom_frame_);
   odom_to_camera_odom_.set__child_frame_id(orb2_odom_frame_);
   map_to_camera_odom_.header.set__frame_id(map_frame_);
   map_to_camera_odom_.set__child_frame_id(orb2_odom_frame_);
   base_link_to_camera_.header.set__frame_id(link_namespace_ + "base_link");
   base_link_to_camera_.set__child_frame_id(link_namespace_ + "orb2_link");
+  global_to_orb2_map_.header.set__frame_id(global_frame_id_);
+  global_to_orb2_map_.set__child_frame_id(orb2_map_frame_);
 
   // Initlaize TF timer
   tf_timer_ = this->create_wall_timer(

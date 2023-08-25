@@ -62,6 +62,14 @@ params:
     read_only: false
     validator: validate_frame_view
 
+  global_frame_id:
+    type: string
+    default_value: ""
+    description: "Name of the global frame, activates the 'global mode': poses in the global frame."
+    constraints: "Cannot be changed while the system is active, setting this to something activates 'global mode', which requires a loaded map and a tf from this frame to link_namespace/orb2_map."
+    read_only: true
+    validator: validate_global_frame_id
+
   link_namespace:
     type: string
     default_value: ""
