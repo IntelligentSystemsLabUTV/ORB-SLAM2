@@ -44,7 +44,7 @@ void ORB_SLAM2DriverNode::camera_imu_callback(const Imu::SharedPtr msg)
 
   RCLCPP_INFO(
     this->get_logger(),
-    "Mounting correction: [%.4f, %.4f, %.4f, %.4f] -> (R: %.4f°, P: %.4f°)",
+    "Mounting correction: [%.6f, %.6f, %.6f, %.6f] -> (R: %.4f°, P: %.4f°)",
     init_q.w(),
     init_q.x(),
     init_q.y(),
