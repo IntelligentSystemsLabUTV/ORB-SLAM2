@@ -1,5 +1,5 @@
-%YAML:1.0
-
+%YAML 1.2
+---
 # Sensor: Stereolabs ZED 2i stereo camera
 # System mode: STEREO
 # Resolution: WVGA
