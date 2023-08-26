@@ -23,7 +23,6 @@ set(THREADS_PREFER_PTHREAD_FLAG ON)
 find_package(ament_cmake REQUIRED)
 find_package(builtin_interfaces REQUIRED)
 find_package(dua_app_management REQUIRED)
-find_package(dua_interfaces REQUIRED)
 find_package(dua_node REQUIRED)
 find_package(dua_qos REQUIRED)
 find_package(Eigen3 3.4 REQUIRED)
@@ -70,7 +69,6 @@ target_link_libraries(orbslam2_driver
   Threads::Threads)
 ament_target_dependencies(orbslam2_driver
   builtin_interfaces
-  dua_interfaces
   dua_node
   dua_qos
   geometry_msgs

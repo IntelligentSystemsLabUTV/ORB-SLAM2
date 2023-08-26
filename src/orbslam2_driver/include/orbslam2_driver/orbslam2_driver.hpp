@@ -62,7 +62,6 @@
 #include <tf2_eigen/tf2_eigen.hpp>
 
 #include <builtin_interfaces/msg/time.hpp>
-#include <dua_interfaces/msg/point_cloud2_with_roi.hpp>
 #include <geometry_msgs/msg/pose_with_covariance_stamped.hpp>
 #include <geometry_msgs/msg/transform_stamped.hpp>
 #include <sensor_msgs/msg/image.hpp>
@@ -77,7 +76,6 @@
 #include <std_srvs/srv/trigger.hpp>
 
 using namespace builtin_interfaces::msg;
-using namespace dua_interfaces::msg;
 using namespace geometry_msgs::msg;
 using namespace sensor_msgs::msg;
 using namespace std_msgs::msg;
