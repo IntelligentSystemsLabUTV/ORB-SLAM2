@@ -58,6 +58,7 @@
 
 #include <tf2/exceptions.h>
 #include <tf2_ros/buffer.h>
+#include <tf2_ros/transform_broadcaster.h>
 #include <tf2_ros/transform_listener.h>
 #include <tf2_eigen/tf2_eigen.hpp>
 
@@ -104,15 +105,16 @@ private:
   void init_parameters();
   void init_publishers();
   void init_services();
-  void init_tf_listeners();
+  void init_tf2();
 
-  /* TF listeners, timer, and related data. */
+  /* TF listeners, broadcaster, timer, and related data. */
   std::string map_frame_;
   std::string odom_frame_;
   std::string orb2_odom_frame_;
   std::string orb2_map_frame_;
   std::shared_ptr<tf2_ros::Buffer> tf_buffer_;
   std::shared_ptr<tf2_ros::TransformListener> tf_listener_;
+  std::shared_ptr<tf2_ros::TransformBroadcaster> tf_broadcaster_;
   std::mutex tf_lock_;
   TransformStamped odom_to_camera_odom_{};
   TransformStamped base_link_to_camera_{};
@@ -176,6 +178,7 @@ private:
   ORB_SLAM2::System::eSensor mode_ = ORB_SLAM2::System::eSensor::STEREO;
   std::string mode_str_;
   bool preconvert_frames_;
+  bool publish_tf_;
   std::string orb2_config_path_;
   bool save_map_;
   bool start_localization_;

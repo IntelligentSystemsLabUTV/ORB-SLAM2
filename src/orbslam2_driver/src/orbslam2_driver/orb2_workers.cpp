@@ -151,6 +151,26 @@ void ORB_SLAM2DriverNode::tracking_thread_routine()
     rviz_base_link_pose_pub_->publish(base_link_pose.to_pose_with_covariance_stamped());
     rviz_pose_pub_->publish(orb2_pose.to_pose_with_covariance_stamped());
 
+    // Publish tf local/global frame -> base_link
+    if (publish_tf_) {
+      TransformStamped tf_msg{};
+      tf_msg.header.set__frame_id(global_frame_id_.empty() ? orb2_odom_frame_ : global_frame_id_);
+      tf_msg.header.set__stamp(base_link_pose.get_header().stamp);
+
+      tf_msg.set__child_frame_id(link_namespace_ + "base_link");
+
+      tf_msg.transform.translation.set__x(base_link_pose.get_position().x());
+      tf_msg.transform.translation.set__y(base_link_pose.get_position().y());
+      tf_msg.transform.translation.set__z(base_link_pose.get_position().z());
+
+      tf_msg.transform.rotation.set__x(base_link_pose.get_attitude().x());
+      tf_msg.transform.rotation.set__y(base_link_pose.get_attitude().y());
+      tf_msg.transform.rotation.set__z(base_link_pose.get_attitude().z());
+      tf_msg.transform.rotation.set__w(base_link_pose.get_attitude().w());
+
+      tf_broadcaster_->sendTransform(tf_msg);
+    }
+
     // Publish loops count
     uint64_t curr_loops = orb2_->GetLoopCount();
     if (curr_loops > loop_cnt) {

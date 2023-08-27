@@ -22,7 +22,7 @@ ORB_SLAM2DriverNode::ORB_SLAM2DriverNode(const rclcpp::NodeOptions & opts)
   init_parameters();
   init_publishers();
   init_services();
-  init_tf_listeners();
+  init_tf2();
 
   if (start_localization_) {
     localization_.store(true, std::memory_order_release);
@@ -125,10 +125,13 @@ void ORB_SLAM2DriverNode::init_services()
 }
 
 /**
- * @brief Initializes TF listeners and their timer.
+ * @brief Initializes TF listeners and broadcasters.
  */
-void ORB_SLAM2DriverNode::init_tf_listeners()
+void ORB_SLAM2DriverNode::init_tf2()
 {
+  // Initialize TF broadcaster
+  tf_broadcaster_ = std::make_shared<tf2_ros::TransformBroadcaster>(*this);
+
   // Initialize TF buffers and listeners
   tf_buffer_ = std::make_shared<tf2_ros::Buffer>(this->get_clock());
   tf_listener_ = std::make_shared<tf2_ros::TransformListener>(*tf_buffer_);

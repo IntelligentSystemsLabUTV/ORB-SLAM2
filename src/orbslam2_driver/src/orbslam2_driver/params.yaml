@@ -94,6 +94,14 @@ params:
     read_only: false
     var_name: preconvert_frames_
 
+  publish_tf:
+    type: bool
+    default_value: true
+    description: "Publishes the tf from the local or global frame to the base_link frame."
+    constraints: ""
+    read_only: false
+    var_name: publish_tf_
+
   orb2_config_path:
     type: string
     default_value: "/home/neo/workspace/src/ORB-SLAM2/Config/Zed-M-Stereo.yaml"
