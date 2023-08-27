@@ -160,7 +160,7 @@ public:
     cv::Mat GetCurrentCovarianceMatrix(bool);
 
     // Returns the currently stored map: each column is a 3D-point coordinates vector
-    std::vector<Eigen::Vector3f> GetMap(bool wait_gba = false);
+    std::shared_ptr<Eigen::MatrixXf> GetMap(bool wait_gba = false);
 
     // Returns the current FrameDrawer frame
     cv::Mat GetFrameDrawerFrame();
@@ -239,6 +239,9 @@ private:
 
     // Current camera pose
     cv::Mat mCurrCameraPose;
+
+    // Latest requested map
+    std::shared_ptr<Eigen::MatrixXf> map_eigen = nullptr;
 
     // Camera parameters
     float mCameraFx;

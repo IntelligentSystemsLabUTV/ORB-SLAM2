@@ -921,42 +921,41 @@ long unsigned int System::GetLoopCount()
 }
 
 // Returns the currently stored map: each element is a 3D-point coordinates vector
-std::vector<Eigen::Vector3f> System::GetMap(bool wait_gba)
+std::shared_ptr<Eigen::MatrixXf> System::GetMap(bool wait_gba)
 {
-  // If a Global Bundle Adjustment is running, abort this or wait for it
-  while (mpLoopCloser->isRunningGBA()) {
-    if (wait_gba) {
-      std::this_thread::sleep_for(std::chrono::seconds(1));
-    } else {
-      return std::vector<Eigen::Vector3f>();
+    // If a Global Bundle Adjustment is running, abort this or wait for it
+    while (mpLoopCloser->isRunningGBA()) {
+        if (wait_gba) {
+            std::this_thread::sleep_for(std::chrono::seconds(1));
+        } else {
+            break;
+        }
     }
-  }
 
-  // Other threads must not update the map while this reads it
-  unique_lock<mutex> mapLock(mpMap->mMutexMapUpdate);
+    // Other threads must not update the map while this reads it
+    unique_lock<mutex> mapLock(mpMap->mMutexMapUpdate);
 
-  // Get all valid map points
-  vector<MapPoint *> mapPoints = mpMap->GetAllMapPoints();
-  mapPoints.erase(
-    remove_if(
-      mapPoints.begin(),
-      mapPoints.end(),
-      [] (MapPoint * p) { return p->isBad(); }),
-      mapPoints.end());
+    // Get all valid map points
+    vector<MapPoint *> mapPoints = mpMap->GetAllMapPoints();
+    mapPoints.erase(
+        remove_if(
+            mapPoints.begin(),
+            mapPoints.end(),
+            [] (MapPoint * p) { return p->isBad(); }),
+            mapPoints.end());
 
-  // Fill a matrix with their coordinates ([X Y Z]w = [Z -X -Y]o)
-  std::vector<Eigen::Vector3f> pointsVec;
-  pointsVec.reserve(mapPoints.size());
-  for (auto p : mapPoints) {
-    cv::Mat pPos = p->GetWorldPos();
-    pointsVec.push_back(
-      Eigen::Vector3f(
-        pPos.at<float>(2),
-        -pPos.at<float>(0),
-        -pPos.at<float>(1)));
-  }
+    // Fill a matrix with their homogeneous coordinates ([X Y Z 1]w = [Z -X -Y 1]o)
+    map_eigen = std::make_shared<Eigen::MatrixXf>(Eigen::MatrixXf(4, mapPoints.size()));
+    for (unsigned long int i = 0; i < mapPoints.size(); i++) {
+        cv::Mat pPos = mapPoints[i]->GetWorldPos();
+        map_eigen->block<4, 1>(0, i) = Eigen::Vector4f(
+            pPos.at<float>(2),
+            -pPos.at<float>(0),
+            -pPos.at<float>(1),
+            1.0f);
+    }
 
-  return pointsVec;
+  return map_eigen;
 }
 
 void System::SaveMap(const string & filename)

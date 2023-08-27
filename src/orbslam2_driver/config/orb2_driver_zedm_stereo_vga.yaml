@@ -11,6 +11,7 @@
     link_namespace: ''
     mode: STEREO
     preconvert_frames: true
+    publish_map: false
     publish_tf: true
     orb2_config_path: /home/neo/workspace/src/orbslam2_driver/config/ZEDMini_Stereo_VGA.yaml
     save_map: false

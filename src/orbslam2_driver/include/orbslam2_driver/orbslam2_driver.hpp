@@ -62,6 +62,8 @@
 #include <tf2_ros/transform_listener.h>
 #include <tf2_eigen/tf2_eigen.hpp>
 
+#include <sensor_msgs/point_cloud2_iterator.hpp>
+
 #include <builtin_interfaces/msg/time.hpp>
 #include <geometry_msgs/msg/pose_with_covariance_stamped.hpp>
 #include <geometry_msgs/msg/transform_stamped.hpp>
@@ -128,6 +130,7 @@ private:
   rclcpp::Publisher<PoseWithCovarianceStamped>::SharedPtr base_link_pose_pub_;
   rclcpp::Publisher<UInt64>::SharedPtr loops_pub_;
   rclcpp::Publisher<PoseWithCovarianceStamped>::SharedPtr pose_pub_;
+  rclcpp::Publisher<PointCloud2>::SharedPtr rviz_map_pub_;
   rclcpp::Publisher<PoseWithCovarianceStamped>::SharedPtr rviz_pose_pub_;
   rclcpp::Publisher<PoseWithCovarianceStamped>::SharedPtr rviz_base_link_pose_pub_;
 
@@ -173,6 +176,7 @@ private:
   ORB_SLAM2::System::eSensor mode_ = ORB_SLAM2::System::eSensor::STEREO;
   std::string mode_str_;
   bool preconvert_frames_;
+  bool publish_map_;
   bool publish_tf_;
   std::string orb2_config_path_;
   bool save_map_;

@@ -94,6 +94,14 @@ params:
     read_only: false
     var_name: preconvert_frames_
 
+  publish_map:
+    type: bool
+    default_value: false
+    description: "Publishes the ORB-SLAM2 internal map as a PointCloud2."
+    constraints: "The map is sparse and not useful for scopes other than debugging, so it's published w.r.t. the local or the global frame only."
+    read_only: false
+    var_name: publish_map_
+
   publish_tf:
     type: bool
     default_value: true

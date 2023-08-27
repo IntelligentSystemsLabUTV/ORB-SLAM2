@@ -204,6 +204,63 @@ void ORB_SLAM2DriverNode::tracking_thread_routine()
       frame_drawer_pub_->publish(frame_drawer_msg);
     }
 
+    // Publish map
+    if (publish_map_) {
+      // Retrieve the map from the system
+      std::shared_ptr<Eigen::MatrixXf> map_points_orb2 = orb2_->GetMap();
+      Eigen::MatrixXf map_points;
+      rclcpp::Time pc_ts = this->get_clock()->now();
+
+      if (global_frame_id_.empty()) {
+        // The map is already good since it's expressed in the orb2_odom frame
+        map_points = *map_points_orb2;
+      } else {
+        // The map is expressed in the orb2_map frame, so we need to transform it to the global frame
+        TransformStamped global_to_orb2_map{};
+        try {
+          global_to_orb2_map = tf_buffer_->lookupTransform(
+            global_frame_id_,
+            orb2_map_frame_,
+            pc_ts, // Note that this is the current time, not the frame time
+            tf2::durationFromSec(0.1));
+        } catch (const tf2::TransformException & e) {
+          RCLCPP_ERROR(this->get_logger(), "TF exception: %s", e.what());
+          continue;
+        }
+        Eigen::Isometry3f global_to_orb2_map_iso =
+          tf2::transformToEigen(global_to_orb2_map).cast<float>();
+        map_points = global_to_orb2_map_iso.matrix() * (*map_points_orb2);
+      }
+
+      // Fill and publish point cloud message
+      PointCloud2 pc_msg{};
+      sensor_msgs::PointCloud2Modifier pc_modifier(pc_msg);
+      pc_msg.header.set__frame_id(global_frame_id_.empty() ? orb2_odom_frame_ : global_frame_id_);
+      pc_msg.header.set__stamp(pc_ts);
+      pc_msg.set__height(1);
+      pc_msg.set__width(map_points.cols());
+      pc_msg.set__is_bigendian(false);
+      pc_msg.set__is_dense(true);
+      pc_modifier.setPointCloud2Fields(
+        3,
+        "x", 1, PointField::FLOAT32,
+        "y", 1, PointField::FLOAT32,
+        "z", 1, PointField::FLOAT32);
+      sensor_msgs::PointCloud2Iterator<float> iter_x(pc_msg, "x");
+      sensor_msgs::PointCloud2Iterator<float> iter_y(pc_msg, "y");
+      sensor_msgs::PointCloud2Iterator<float> iter_z(pc_msg, "z");
+      for (Eigen::Index i = 0; i < map_points.cols(); i++) {
+        *iter_x = map_points(0, i);
+        *iter_y = map_points(1, i);
+        *iter_z = map_points(2, i);
+
+        ++iter_x;
+        ++iter_y;
+        ++iter_z;
+      }
+      rviz_map_pub_->publish(pc_msg);
+    }
+
     first_run = false;
   }
 }

@@ -80,6 +80,11 @@ void ORB_SLAM2DriverNode::init_publishers()
     "~/pose",
     DUAQoS::get_datum_qos());
 
+  // rviz/map
+  rviz_map_pub_ = this->create_publisher<PointCloud2>(
+    "~/rviz/map",
+    DUAQoS::Visualization::get_scan_qos());
+
   // rviz/base_link_pose
   rviz_base_link_pose_pub_ = this->create_publisher<PoseWithCovarianceStamped>(
     "~/rviz/base_link_pose",
