@@ -107,21 +107,16 @@ private:
   void init_services();
   void init_tf2();
 
-  /* TF listeners, broadcaster, timer, and related data. */
-  std::string map_frame_;
+  /* TF listener, broadcaster, and related data. */
+  std::string body_frame_;
+  std::string global_frame_;
   std::string odom_frame_;
+  std::string orb2_frame_;
   std::string orb2_odom_frame_;
   std::string orb2_map_frame_;
   std::shared_ptr<tf2_ros::Buffer> tf_buffer_;
   std::shared_ptr<tf2_ros::TransformListener> tf_listener_;
   std::shared_ptr<tf2_ros::TransformBroadcaster> tf_broadcaster_;
-  std::mutex tf_lock_;
-  TransformStamped odom_to_camera_odom_{};
-  TransformStamped base_link_to_camera_{};
-  TransformStamped map_to_camera_odom_{};
-  TransformStamped global_to_orb2_map_{};
-  rclcpp::TimerBase::SharedPtr tf_timer_;
-  void tf_timer_callback();
 
   /* Topic subscriptions. */
   rclcpp::Subscription<Imu>::SharedPtr camera_imu_sub_;

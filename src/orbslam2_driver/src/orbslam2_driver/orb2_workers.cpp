@@ -103,45 +103,55 @@ void ORB_SLAM2DriverNode::tracking_thread_routine()
       orb2_pose.set_position(orb2_corrected_iso.translation());
       orb2_pose.set_attitude(Eigen::Quaterniond(orb2_corrected_iso.rotation()));
     } else {
+      TransformStamped global_to_orb2_map{};
+      try {
+        global_to_orb2_map = tf_buffer_->lookupTransform(
+          global_frame_id_,
+          orb2_map_frame_,
+          rclcpp::Time(frame_ts_ros),
+          tf2::durationFromSec(0.1));
+      } catch (const tf2::TransformException & e) {
+        RCLCPP_ERROR(this->get_logger(), "TF exception: %s", e.what());
+        continue;
+      }
       Eigen::Isometry3d orb2_iso = orb2_pose.get_isometry();
-      tf_lock_.lock();
-      Eigen::Isometry3d global_to_orb2_map_iso = tf2::transformToEigen(global_to_orb2_map_);
-      tf_lock_.unlock();
+      Eigen::Isometry3d global_to_orb2_map_iso = tf2::transformToEigen(global_to_orb2_map);
       Eigen::Isometry3d orb2_corrected_iso = global_to_orb2_map_iso * orb2_iso;
       orb2_pose.set_position(orb2_corrected_iso.translation());
       orb2_pose.set_attitude(Eigen::Quaterniond(orb2_corrected_iso.rotation()));
       orb2_pose.set_frame_id(global_frame_id_);
     }
 
-    // Get base_link pose
+    // Get body_frame -> orb2_link tf
+    TransformStamped base_link_to_orb2{};
+    try {
+      base_link_to_orb2 = tf_buffer_->lookupTransform(
+        body_frame_,
+        orb2_frame_,
+        rclcpp::Time(frame_ts_ros),
+        tf2::durationFromSec(0.1));
+    } catch (const tf2::TransformException & e) {
+      RCLCPP_ERROR(this->get_logger(), "TF exception: %s", e.what());
+      continue;
+    }
+
+    // Get body pose
+    // For a moment, we pretend that the 'frame_id' fields denote the frame id of the frame that the pose
+    // tracks, and not the one w.r.t. they are expressed, just to be able to apply track_parent
     PoseKit::Pose base_link_pose = orb2_pose;
+    base_link_pose.set_frame_id(orb2_frame_);
+    try {
+      base_link_pose.track_parent(base_link_to_orb2);
+    } catch (const std::exception & e) {
+      RCLCPP_ERROR(
+        this->get_logger(),
+        "ORB_SLAM2DriverNode::tracking_thread_routine: base_link_pose::track_parent: %s",
+        e.what());
+      continue;
+    }
     if (global_frame_id_.empty()) {
-      try {
-        tf_lock_.lock();
-        base_link_pose.track_parent(odom_to_camera_odom_);
-        tf_lock_.unlock();
-      } catch (const std::exception & e) {
-        RCLCPP_ERROR(
-          this->get_logger(),
-          "ORB_SLAM2DriverNode::tracking_thread_routine: base_link_pose::track_parent: %s",
-          e.what());
-        tf_lock_.unlock();
-      }
+      base_link_pose.set_frame_id(odom_frame_);
     } else {
-      // For a moment, we pretend that the 'frame_id' fields denote the frame id of the frame that the pose
-      // tracks, and not the one w.r.t. they are expressed, just to be able to apply track_parent
-      base_link_pose.set_frame_id(link_namespace_ + "orb2_link");
-      try {
-        tf_lock_.lock();
-        base_link_pose.track_parent(base_link_to_camera_);
-        tf_lock_.unlock();
-      } catch (const std::exception & e) {
-        RCLCPP_ERROR(
-          this->get_logger(),
-          "ORB_SLAM2DriverNode::tracking_thread_routine: base_link_pose::track_parent: %s",
-          e.what());
-        tf_lock_.unlock();
-      }
       base_link_pose.set_frame_id(global_frame_id_);
     }
 
