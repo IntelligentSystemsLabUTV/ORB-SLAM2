@@ -104,15 +104,21 @@ void ORB_SLAM2DriverNode::tracking_thread_routine()
       orb2_pose.set_attitude(Eigen::Quaterniond(orb2_corrected_iso.rotation()));
     } else {
       TransformStamped global_to_orb2_map{};
-      try {
-        global_to_orb2_map = tf_buffer_->lookupTransform(
-          global_frame_id_,
-          orb2_map_frame_,
-          rclcpp::Time(frame_ts_ros),
-          tf2::durationFromSec(0.1));
-      } catch (const tf2::TransformException & e) {
-        RCLCPP_ERROR(this->get_logger(), "TF exception: %s", e.what());
-        continue;
+      rclcpp::Time tf_time(frame_ts_ros);
+      while (true) {
+        try {
+          global_to_orb2_map = tf_buffer_->lookupTransform(
+            global_frame_id_,
+            orb2_map_frame_,
+            tf_time,
+            tf2::durationFromSec(0.1));
+          break;
+        } catch (const tf2::ExtrapolationException & e) {
+          // Just get the latest
+          tf_time = rclcpp::Time{};
+        } catch (const tf2::TransformException & e) {
+          RCLCPP_ERROR(this->get_logger(), "TF exception: %s", e.what());
+        }
       }
       Eigen::Isometry3d orb2_iso = orb2_pose.get_isometry();
       Eigen::Isometry3d global_to_orb2_map_iso = tf2::transformToEigen(global_to_orb2_map);
@@ -124,15 +130,21 @@ void ORB_SLAM2DriverNode::tracking_thread_routine()
 
     // Get body_frame -> orb2_link tf
     TransformStamped base_link_to_orb2{};
-    try {
-      base_link_to_orb2 = tf_buffer_->lookupTransform(
-        body_frame_,
-        orb2_frame_,
-        rclcpp::Time(frame_ts_ros),
-        tf2::durationFromSec(0.1));
-    } catch (const tf2::TransformException & e) {
-      RCLCPP_ERROR(this->get_logger(), "TF exception: %s", e.what());
-      continue;
+    rclcpp::Time tf_time(frame_ts_ros);
+    while (true) {
+      try {
+        base_link_to_orb2 = tf_buffer_->lookupTransform(
+          body_frame_,
+          orb2_frame_,
+          tf_time,
+          tf2::durationFromSec(0.1));
+        break;
+      } catch (const tf2::ExtrapolationException & e) {
+        // Just get the latest
+        tf_time = rclcpp::Time{};
+      } catch (const tf2::TransformException & e) {
+        RCLCPP_ERROR(this->get_logger(), "TF exception: %s", e.what());
+      }
     }
 
     // Get body pose
@@ -207,15 +219,21 @@ void ORB_SLAM2DriverNode::tracking_thread_routine()
       } else {
         // The map is expressed in the orb2_map frame, so we need to transform it to the global frame
         TransformStamped global_to_orb2_map{};
-        try {
-          global_to_orb2_map = tf_buffer_->lookupTransform(
-            global_frame_id_,
-            orb2_map_frame_,
-            pc_ts, // Note that this is the current time, not the frame time
-            tf2::durationFromSec(0.1));
-        } catch (const tf2::TransformException & e) {
-          RCLCPP_ERROR(this->get_logger(), "TF exception: %s", e.what());
-          continue;
+        rclcpp::Time tf_time(pc_ts); // Note that this is the current time, not the frame time
+        while (true) {
+          try {
+            global_to_orb2_map = tf_buffer_->lookupTransform(
+              global_frame_id_,
+              orb2_map_frame_,
+              tf_time,
+              tf2::durationFromSec(0.1));
+            break;
+          } catch (const tf2::ExtrapolationException & e) {
+            // Just get the latest
+            tf_time = rclcpp::Time{};
+          } catch (const tf2::TransformException & e) {
+            RCLCPP_ERROR(this->get_logger(), "TF exception: %s", e.what());
+          }
         }
         Eigen::Isometry3f global_to_orb2_map_iso =
           tf2::transformToEigen(global_to_orb2_map).cast<float>();
