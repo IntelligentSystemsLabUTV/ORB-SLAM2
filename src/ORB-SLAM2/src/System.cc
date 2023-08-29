@@ -20,6 +20,7 @@
 
 #include <algorithm>
 #include <chrono>
+#include <cmath>
 #include <iomanip>
 #include <stdexcept>
 #include <thread>
@@ -896,11 +897,7 @@ cv::Mat System::GetCurrentCovarianceMatrix(bool rotationInverse)
     Eigen::Matrix<float, 6, 6> cov_mat_spurious = cov_cv_to_eigen(cov_mat_spurious_cv);
     Eigen::Matrix<float, 6, 6> L = cov_mat_spurious.diagonal().asDiagonal();
     for (int i = 0; i < 6; i++) {
-      if (L(i, i) < 0.0f) {
-        L(i, i) = float(1e-6f);
-      } else if (L(i, i) > 1.0f) {
-        L(i, i) = 1.0f;
-      }
+      L(i, i) = std::fmaxf(std::fminf(L(i, i), 1.0f), float(1e-6f));
     }
     return cov_eigen_to_cv(L);
   } else {
