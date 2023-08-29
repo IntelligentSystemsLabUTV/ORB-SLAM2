@@ -136,24 +136,14 @@ void ORB_SLAM2DriverNode::tracking_thread_routine()
     }
 
     // Get body pose
-    // For a moment, we pretend that the 'frame_id' fields denote the frame id of the frame that the pose
-    // tracks, and not the one w.r.t. they are expressed, just to be able to apply track_parent
     PoseKit::Pose base_link_pose = orb2_pose;
-    base_link_pose.set_frame_id(orb2_frame_);
-    try {
-      base_link_pose.track_parent(base_link_to_orb2);
-    } catch (const std::exception & e) {
-      RCLCPP_ERROR(
-        this->get_logger(),
-        "ORB_SLAM2DriverNode::tracking_thread_routine: base_link_pose::track_parent: %s",
-        e.what());
-      continue;
-    }
+    std::string new_frame_id;
     if (global_frame_id_.empty()) {
-      base_link_pose.set_frame_id(odom_frame_);
+      new_frame_id = odom_frame_;
     } else {
-      base_link_pose.set_frame_id(global_frame_id_);
+      new_frame_id = global_frame_id_;
     }
+    base_link_pose.rigid_transform(base_link_to_orb2, new_frame_id);
 
     // Publish pose messages
     base_link_pose_pub_->publish(base_link_pose.to_pose_with_covariance_stamped());
