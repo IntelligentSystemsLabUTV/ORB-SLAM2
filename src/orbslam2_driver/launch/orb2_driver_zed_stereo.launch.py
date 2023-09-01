@@ -26,14 +26,19 @@ def generate_launch_description():
         'orb2_driver_zed2i_stereo_vga.yaml')
 
     # Declare launch arguments
+    nm = LaunchConfiguration('name')
     ns = LaunchConfiguration('namespace')
     cf = LaunchConfiguration('cf')
+    nm_launch_arg = DeclareLaunchArgument(
+        'name',
+        default_value='orbslam2_driver')
     ns_launch_arg = DeclareLaunchArgument(
         'namespace',
         default_value='orbslam2')
     cf_launch_arg = DeclareLaunchArgument(
         'cf',
         default_value=config)
+    ld.add_action(nm_launch_arg)
     ld.add_action(ns_launch_arg)
     ld.add_action(cf_launch_arg)
 
@@ -41,6 +46,7 @@ def generate_launch_description():
     node = Node(
         package='orbslam2_driver',
         executable='orbslam2_driver_app',
+        name=nm,
         namespace=ns,
         emulate_tty=True,
         output='both',
