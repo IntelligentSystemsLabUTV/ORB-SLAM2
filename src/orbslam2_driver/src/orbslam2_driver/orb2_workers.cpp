@@ -25,6 +25,7 @@ void ORB_SLAM2DriverNode::tracking_thread_routine()
   bool first_run = true;
 
   while (true) {
+next:
     // Get input data from the subscriber
     sem_wait(&tracking_sem_2_);
     frame_1 = camera_1_frame_.clone();
@@ -117,7 +118,11 @@ void ORB_SLAM2DriverNode::tracking_thread_routine()
           // Just get the latest
           tf_time = rclcpp::Time{};
         } catch (const tf2::TransformException & e) {
-          RCLCPP_ERROR(this->get_logger(), "TF exception: %s", e.what());
+          RCLCPP_ERROR(
+            this->get_logger(),
+            "ORB_SLAM2DriverNode::tracking_thread_routine: TF exception: %s",
+            e.what());
+          goto next;
         }
       }
       Eigen::Isometry3d orb2_iso = orb2_pose.get_isometry();
@@ -143,7 +148,11 @@ void ORB_SLAM2DriverNode::tracking_thread_routine()
         // Just get the latest
         tf_time = rclcpp::Time{};
       } catch (const tf2::TransformException & e) {
-        RCLCPP_ERROR(this->get_logger(), "TF exception: %s", e.what());
+        RCLCPP_ERROR(
+          this->get_logger(),
+          "ORB_SLAM2DriverNode::tracking_thread_routine: TF exception: %s",
+          e.what());
+        goto next;
       }
     }
 
@@ -232,7 +241,11 @@ void ORB_SLAM2DriverNode::tracking_thread_routine()
             // Just get the latest
             tf_time = rclcpp::Time{};
           } catch (const tf2::TransformException & e) {
-            RCLCPP_ERROR(this->get_logger(), "TF exception: %s", e.what());
+            RCLCPP_ERROR(
+              this->get_logger(),
+              "ORB_SLAM2DriverNode::tracking_thread_routine: TF exception: %s",
+              e.what());
+            goto next;
           }
         }
         Eigen::Isometry3f global_to_orb2_map_iso =
