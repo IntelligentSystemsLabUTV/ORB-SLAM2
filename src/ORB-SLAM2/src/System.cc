@@ -891,13 +891,13 @@ cv::Mat System::GetCurrentCovarianceMatrix(bool rotationInverse)
 
     cv::Mat cov_mat_spurious_cv = swap_rows * factor.inv() * swap_cols;
 
-    // We need to purge the spurious negative eigenvalues: only consider variances, and
-    // set to a small value the negative ones (it is taken as the default for the
-    // robot_localization's EKF), as well as saturate the positive ones
+    // We need to purge the spurious negative eigenvalues: only consider variances,
+    // and set to a small value the negative ones (it is taken as the default in the
+    // robot_localization EKF implementation)
     Eigen::Matrix<float, 6, 6> cov_mat_spurious = cov_cv_to_eigen(cov_mat_spurious_cv);
     Eigen::Matrix<float, 6, 6> L = cov_mat_spurious.diagonal().asDiagonal();
     for (int i = 0; i < 6; i++) {
-      L(i, i) = std::fmaxf(std::fminf(L(i, i), 1.0f), float(1e-6f));
+      L(i, i) = std::fmaxf(L(i, i), float(1e-6f));
     }
     return cov_eigen_to_cv(L);
   } else {
