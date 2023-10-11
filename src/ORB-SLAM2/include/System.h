@@ -218,9 +218,9 @@ private:
 
     // System threads: Local Mapping, Loop Closing, Viewer.
     // The Tracking thread "lives" in the main execution thread that creates the System object.
-    std::thread* mptLocalMapping;
-    std::thread* mptLoopClosing;
-    std::thread* mptViewer;
+    std::thread* mptLocalMapping = nullptr;
+    std::thread* mptLoopClosing = nullptr;
+    std::thread* mptViewer = nullptr;
 
     // Reset flag
     std::mutex mMutexReset;
