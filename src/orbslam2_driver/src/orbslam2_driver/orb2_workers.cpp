@@ -178,7 +178,11 @@ next:
       tf_msg.header.set__frame_id(global_frame_id_.empty() ? orb2_odom_frame_ : global_frame_id_);
       tf_msg.header.set__stamp(base_link_pose.get_header().stamp);
 
-      tf_msg.set__child_frame_id(link_namespace_ + "base_link");
+      if (link_namespace_.find("seppia") != std::string::npos) {
+        tf_msg.set__child_frame_id(link_namespace_ + "base_footprint");
+      } else {
+        tf_msg.set__child_frame_id(link_namespace_ + "base_link");
+      }
 
       tf_msg.transform.translation.set__x(base_link_pose.get_position().x());
       tf_msg.transform.translation.set__y(base_link_pose.get_position().y());
