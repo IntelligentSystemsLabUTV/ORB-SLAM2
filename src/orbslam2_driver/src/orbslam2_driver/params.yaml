@@ -11,6 +11,14 @@ params:
     read_only: true
     var_name: autostart_
 
+  body_frame_id:
+    type: string
+    default_value: "base_link"
+    description: "Name of the body frame."
+    constraints: "Cannot be changed."
+    read_only: true
+    var_name: body_frame_id_
+
   camera_orientation_topic:
     type: string
     default_value: "/camera/orientation"
@@ -133,6 +141,14 @@ params:
     constraints: "Cannot be changed."
     read_only: true
     var_name: start_localization_
+
+  set_gravity_as_origin:
+    type: bool
+    default_value: false
+    description: "Makes pose aligned with the gravity vector/ground plane."
+    constraints: "Cannot be changed, requires a camera with an IMU and a local frame aligned to ground."
+    read_only: true
+    var_name: set_gravity_as_origin_
 
   subscriber_depth:
     type: integer

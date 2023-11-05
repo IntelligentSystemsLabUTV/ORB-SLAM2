@@ -142,11 +142,7 @@ void ORB_SLAM2DriverNode::init_tf2()
   tf_listener_ = std::make_shared<tf2_ros::TransformListener>(*tf_buffer_);
 
   // Initialize local data
-  if (link_namespace_.find("seppia") != std::string::npos) {
-    body_frame_ = link_namespace_ + "base_footprint";
-  } else {
-    body_frame_ = link_namespace_ + "base_link";
-  }
+  body_frame_ = link_namespace_ + body_frame_id_;
   global_frame_ = "map";
   odom_frame_ = link_namespace_ + "odom";
   orb2_frame_ = link_namespace_ + "orb2_link";

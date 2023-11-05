@@ -1,0 +1,353 @@
+%YAML 1.2
+---
+# Sensor: Stereolabs ZED 2i stereo camera
+# System mode: STEREO
+# Resolution: HD720
+
+#--------------------------------------------------------------------------------------------
+# Camera parameters
+#--------------------------------------------------------------------------------------------
+# Baseline: 0.120107 [m]
+# Focal lengths
+Camera.fx: 525.615295410
+Camera.fy: 525.615295410
+
+# Principal point coordinates
+Camera.cx: 643.272033691
+Camera.cy: 361.638488769
+
+# Distortion coefficients
+Camera.k1: 0.0
+Camera.k2: 0.0
+Camera.p1: 0.0
+Camera.p2: 0.0
+
+# Image size
+Camera.width: 1280
+Camera.height: 720
+
+# Frames per second
+Camera.fps: 30.0
+
+# Stereo baseline times fx (Camera.fx * baseline)
+Camera.bf: 63.130076286
+
+# Color order of the images (0: BGR, 1: RGB, ignored if images are grayscale)
+# WARNING: In STEREO mode, L/R frames must have the same encoding.
+Camera.RGB: 0
+
+# Coefficient for close/far map points threshold (applied to baseline)
+# Points seen as "close" in STEREO/RGB-D are considered reliable and inserted from just one frame.
+# Far points require a match in two keyframes.
+# Default: 35.0 (4.203 m)
+ThDepth: 35.0 # (4.203 m)
+
+#--------------------------------------------------------------------------------------------
+# ORB parameters
+#--------------------------------------------------------------------------------------------
+# Features per image
+# This should increase with the image resolution (e.g. 1000 for 640x480, 2000 for 1280x960...).
+ORBextractor.nFeatures: 1500
+
+# Scale factor between levels in the scale pyramid
+# Default: 1.2
+ORBextractor.scaleFactor: 1.2
+
+# Number of levels in the scale pyramid
+# Default: 8
+ORBextractor.nLevels: 8
+
+# FAST threshold
+# Image is divided in a grid.
+# At each cell, FAST features are extracted imposing a minimum response.
+# First, we impose iniThFAST.
+# If no corners are detected, we impose a lower value minThFAST.
+# Lower these values if your images have low contrast.
+# Default: 20
+ORBextractor.iniThFAST: 20
+# Default: 7
+ORBextractor.minThFAST: 7
+
+# Default: 31
+ORBextractor.patchSize: 31
+
+# Default: 15
+ORBextractor.halfPatchSize: 15
+
+# Default: 19
+ORBextractor.edgeThreshold: 19
+
+# CPU cores to use for feature extraction on L/R frames
+# Default: -1, -1 (no affinity)
+# WARNING: Setting these equal or equal to the tracking thread CPU can cause a bottleneck.
+ORBextractor.leftCPU: 0
+ORBextractor.rightCPU: 2
+
+#--------------------------------------------------------------------------------------------
+# Loop Closing parameters
+#--------------------------------------------------------------------------------------------
+# Covisibility consistency threshold
+# For each loop candidate, a consistency check is run against previous loop candidates.
+# Each candidate expands a covisibility group (keyframes connected to the loop
+# candidate in the covisibility graph).
+# A group is consistent with a previous group if they share at least a keyframe.
+# We must detect a consistent loop in several consecutive keyframes to accept it
+# (the consecutive keyframes are given by the mnCovisibilityConsistencyTh).
+# Default: 3
+LoopClosing.covisibilityConsistencyThreshold: 3
+
+# If the map contains less than a minimum keyframes or less than these keyframes
+# have passed from last loop detection, loop detection fails
+# Default: 10
+LoopClosing.minimumKeyFrames: 10
+
+# NN ratio for Sim3 ORB matcher
+# Default: 0.75
+LoopClosing.sim3nnRatioOrbMatcher: 0.75
+
+# Threshold to trigger RANSAC on Sim3
+# Default: 20
+LoopClosing.ransacThresholdTrigger: 15
+
+# Loop Closing RANSAC parameters
+# Default: 0.95
+LoopClosing.ransacProbability: 0.95
+# Default: 20
+LoopClosing.ransacMinimalInliers: 20
+# Default: 300
+LoopClosing.ransacMaxIterations: 300
+
+# Loop detection threshold
+# The loop is considered as detected if the matches are greater or equal to this threshold.
+# Default: 40
+LoopClosing.detectionThreshold: 40
+
+# Loop Closing thread update period in microseconds
+# This thread must act upon the reception of new KeyFrames, so tune this according to your camera's framerate
+# to avoid wasting CPU cycles.
+# Default: 5000
+LoopClosing.loopRate: 20000
+
+# Loop Closing thread CPU
+# Default: -1 (no affinity)
+LoopClosing.CPU: 4
+
+# Global Bundle Adjustment thread CPU
+# Default: -1 (no affinity)
+LoopClosing.gbaCPU: 4
+
+#--------------------------------------------------------------------------------------------
+# Local Mapping parameters
+#--------------------------------------------------------------------------------------------
+# Local Mapping thread update period in microseconds
+# This thread must act upon the reception of new KeyFrames, so tune this according to your camera's framerate
+# to avoid wasting CPU cycles.
+# Keeping this high, however, might favor movement tracking during long turns and fast motion,
+# scenarios in which KeyFrames are inserted frequently.
+# Default: 3000
+LocalMapping.loopRate: 3000
+
+# Local Mapping thread CPU
+# Default: -1 (no affinity)
+LocalMapping.CPU: 6
+
+#--------------------------------------------------------------------------------------------
+# Optimizer parameters
+#--------------------------------------------------------------------------------------------
+# 2D Huber threshold
+# Default: 5.99
+Optimizer.2DHuberThreshold: 5.99
+
+# 3D Huber threshold
+# Default: 7.815
+Optimizer.3DHuberThreshold: 7.815
+
+# Initial Lambda for the Levenberg algorithm
+# Default: 1.0e-16
+Optimizer.initialLambda: 1.0e-16
+
+# Amount of covisible keyframes
+# Default: 100
+Optimizer.covisibleKeyframes: 100
+
+# Number of optimization iterations for essential graph
+# Default: 20
+Optimizer.essentialGraphIterations: 20
+
+# Number of optimization iterations for Sim3
+# Default: 5
+Optimizer.sim3Iterations: 5
+
+# Number of additional iterations if there are outliers
+# Default: 10
+Optimizer.additionalIterations: 5
+
+# Number of additional iterations if there are no outliers
+# Default: 5
+Optimizer.additionalIterationsNoOutliers: 5
+
+# Number of additional Local Bundle Adjustment iterations without outliers
+# Default: 10
+Optimizer.additionalLBAIterationsNoOutliers: 10
+
+# Minimum number of inliers left before failing whole optimization
+# Default: 10
+Optimizer.minimumInliersBeforeFail: 10
+
+# Maximum Local Bundle Adjustment iterations
+# Default: 5
+Optimizer.lbaIterations: 5
+
+# Maximum Global Bundle Adjustment iterations
+# Default: 10
+Optimizer.gbaIterations: 10
+
+# g2o's optimizer verbose mode
+# WARNING: Some of these might generate a gazillion of logs!
+# Default: false
+Optimizer.gbaVerbose: true
+Optimizer.lbaVerbose: false
+Optimizer.poseVerbose: false
+Optimizer.essentialGraphVerbose: false
+Optimizer.sim3Verbose: false
+
+#--------------------------------------------------------------------------------------------
+# Tracking parameters
+#--------------------------------------------------------------------------------------------
+# Minimum number of frames after which to insert keyframes and to check relocalisation
+# This is not the only condition, check Tracking.cc::NeedNewKeyFrame.
+# Default: 0
+Tracking.minFrames: 15
+
+# An ORB matcher is used with the following NN ratio for tracking the reference keyframe
+# Default: 0.7
+Tracking.referenceKeyframeNnRatioOrbMatcher: 0.7
+
+# If the number of matches is less than this threshold, reference keyframe tracking fails
+# Default: 15
+Tracking.minimumMatchesRefKeyframe: 15
+
+# If the number of matches, discarding outliers, is more or equal to this value,
+# reference keyframe tracking succeeds
+# Default: 10
+Tracking.keyframeTrackingThreshold: 10
+
+# All the points closer than ThDepth are inserted unless they are less than this,
+# then this many closest are used
+# Default: 100
+Tracking.pointsCloserThreshold: 100
+
+# An ORB matcher is used with the following NN ratio for tracking with the motion model
+# Default: 0.9
+Tracking.motionModelNnRatioOrbMatcher: 0.9
+
+# In STEREO, used to determine the searching radius after being scaled (tracking with motion model)
+# Default: 15
+Tracking.stereoSearchingRadius: 15
+
+# In all the modes, used to determine the searching radius after being scaled (tracking with motion model)
+# Default: 7
+Tracking.searchingRadius: 7
+
+# If matches from ORB matcher are less than this threshold, use twice the th value (tracking with motion model)
+# Default: 20
+Tracking.speedupMatchesThreshold: 20
+
+# If matches from the ORB matcher are less than this threshold after widening the search window,
+# tracking with motion model fails
+# Default: 20
+Tracking.speedupMatchesThreshold2: 20
+
+# After removing ouliers, if the number of matches is greater than this threshold,
+# tracking with motion model succeeds
+# Default: 10
+Tracking.motionModelThreshold: 10
+
+# Minimum number of matches inliers to decide if tracking with local map is successful
+# Default: 30
+Tracking.localMapTrackingThreshold: 30
+
+# Minimum number of matches inliers to decide if tracking with local map
+# is successful, when a relocalization has been made recently
+# Default: 50
+Tracking.localMapTrackingThreshold2: 50
+
+# For creating a new keyframe, all the points closer than ThDepth are inserted,
+# unless they are less than the following threshold, then this many closest are used
+# Default: 100
+Tracking.newKeyframeThreshold: 100
+
+# The map points are projected into the frame and if the cosine between the last and current viewing
+# angle is smaller than the following delta, then it is used
+# Default: 0.5
+Tracking.cosineDelta: 0.5
+
+# An ORB matcher is used with the following NN ratio for searching local points
+# Default: 0.8
+Tracking.searchLocalPointsNnRatioOrbMatcher: 0.8
+
+# In RGB-D, used to determine the searching radius after being scaled for the matcher SearchByProjection
+# Default: 3
+Tracking.RGBDSearchingRadiusThreshold: 3
+
+# If the camera has been relocalised recently, perform a coarser search for the
+# matcher of SearchByProjection
+# Default: 5
+Tracking.searchingByProjectionThreshold: 5
+
+# If less keyframes that observe a map point than the following limit are included
+# in the local map, then it is filled up to this limit using keyframes
+# that are neighbors to already-included keyframes
+# Default: 80
+Tracking.keyframesLimit: 80
+
+# An ORB matcher is used with the following NN ratio for relocalization
+# Default: 0.75
+Tracking.relocalizationNnRatioOrbMatcher: 0.75
+
+# If more than the following matches are found between the local frame and one
+# of the keyframes, this keyframe is considered a candidate for relocalization
+# Default: 15
+Tracking.keyframeCandidateThreshold: 15
+
+# A PNP solver is run using the following RANSAC parameters
+# Default: 0.99
+Tracking.pnpSolverRansacProbability: 0.99
+# Default: 10
+Tracking.pnpSolverRansacMinInliers: 10
+# Default: 300
+Tracking.pnpSolverRansacMaxIterations: 200
+# Default: 4
+Tracking.pnpSolverRansacMinSet: 4
+# Default: 0.5
+Tracking.pnpSolverRansacEpsilon: 0.5
+# Default: 5.991
+Tracking.pnpSolverRansacTh2: 5.991
+
+# An ORB matcher is used with the following NN ratio for relocalization
+# for the P4P RANSAC to catch enough inliers
+# Default: 0.9
+Tracking.p4pRelocalizationNnRatioOrbMatcher: 0.9
+
+# Number of RANSAC iterations for relocalization
+# Default: 5
+Tracking.ransacIterationsRelocalization: 5
+
+#--------------------------------------------------------------------------------------------
+# Viewer parameters
+#--------------------------------------------------------------------------------------------
+Viewer.KeyFrameSize: 0.05
+Viewer.KeyFrameLineWidth: 1
+Viewer.GraphLineWidth: 0.9
+Viewer.PointSize: 2
+Viewer.CameraSize: 0.08
+Viewer.CameraLineWidth: 3
+Viewer.ViewpointX: 0
+Viewer.ViewpointY: -0.7
+Viewer.ViewpointZ: -1.8
+Viewer.ViewpointF: 500
+
+#--------------------------------------------------------------------------------------------
+# Map file to save and/or pre-load
+#--------------------------------------------------------------------------------------------
+Map.mapfile:

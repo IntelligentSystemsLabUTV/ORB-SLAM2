@@ -165,6 +165,7 @@ private:
 
   /* Node parameters. */
   bool autostart_;
+  std::string body_frame_id_;
   std::string camera_orientation_topic_;
   std::string camera_topic_1_;
   std::string camera_topic_2_;
@@ -180,6 +181,7 @@ private:
   bool publish_tf_;
   std::string orb2_config_path_;
   bool save_map_;
+  bool set_gravity_as_origin_;
   bool start_localization_;
   int64_t tracking_cpu_;
   std::string transport_;

@@ -89,20 +89,22 @@ next:
         break;
     }
 
-    // Apply initial transformation, or global_frame -> orb2_map
+    // Apply mounting correction if required, or global_frame -> orb2_map
     if (global_frame_id_.empty()) {
-      Eigen::Isometry3d orb2_iso = orb2_pose.get_isometry();
-      init_pose_lock_.lock();
-      Eigen::EulerAnglesXYZd init_rpy(
-        init_pose_.get_rpy().alpha(),
-        init_pose_.get_rpy().beta(),
-        0.0);
-      init_pose_lock_.unlock();
-      Eigen::Isometry3d init_iso = Eigen::Isometry3d::Identity();
-      init_iso.rotate(init_rpy.toRotationMatrix());
-      Eigen::Isometry3d orb2_corrected_iso = init_iso * orb2_iso;
-      orb2_pose.set_position(orb2_corrected_iso.translation());
-      orb2_pose.set_attitude(Eigen::Quaterniond(orb2_corrected_iso.rotation()));
+      if (set_gravity_as_origin_) {
+        Eigen::Isometry3d orb2_iso = orb2_pose.get_isometry();
+        init_pose_lock_.lock();
+        Eigen::EulerAnglesXYZd init_rpy(
+          init_pose_.get_rpy().alpha(),
+          init_pose_.get_rpy().beta(),
+          0.0);
+        init_pose_lock_.unlock();
+        Eigen::Isometry3d init_iso = Eigen::Isometry3d::Identity();
+        init_iso.rotate(init_rpy.toRotationMatrix());
+        Eigen::Isometry3d orb2_corrected_iso = init_iso * orb2_iso;
+        orb2_pose.set_position(orb2_corrected_iso.translation());
+        orb2_pose.set_attitude(Eigen::Quaterniond(orb2_corrected_iso.rotation()));
+      }
     } else {
       TransformStamped global_to_orb2_map{};
       rclcpp::Time tf_time(frame_ts_ros);
@@ -175,14 +177,9 @@ next:
     // Publish tf local/global frame -> base_link
     if (publish_tf_) {
       TransformStamped tf_msg{};
-      tf_msg.header.set__frame_id(global_frame_id_.empty() ? orb2_odom_frame_ : global_frame_id_);
+      tf_msg.header.set__frame_id(global_frame_id_.empty() ? odom_frame_ : global_frame_id_);
       tf_msg.header.set__stamp(base_link_pose.get_header().stamp);
-
-      if (link_namespace_.find("seppia") != std::string::npos) {
-        tf_msg.set__child_frame_id(link_namespace_ + "base_footprint");
-      } else {
-        tf_msg.set__child_frame_id(link_namespace_ + "base_link");
-      }
+      tf_msg.set__child_frame_id(body_frame_);
 
       tf_msg.transform.translation.set__x(base_link_pose.get_position().x());
       tf_msg.transform.translation.set__y(base_link_pose.get_position().y());
@@ -243,9 +240,25 @@ next:
       sensor_msgs::PointCloud2Iterator<float> iter_y(pc_msg, "y");
       sensor_msgs::PointCloud2Iterator<float> iter_z(pc_msg, "z");
       for (Eigen::Index i = 0; i < map_points->cols(); i++) {
-        *iter_x = (*map_points)(0, i);
-        *iter_y = (*map_points)(1, i);
-        *iter_z = (*map_points)(2, i);
+        if (!global_frame_id_.empty() || !set_gravity_as_origin_) {
+          *iter_x = (*map_points)(0, i);
+          *iter_y = (*map_points)(1, i);
+          *iter_z = (*map_points)(2, i);
+        } else {
+          Eigen::Isometry3d point_iso = Eigen::Isometry3d::Identity();
+          point_iso.matrix().block<3, 1>(0, 3) = Eigen::Vector3d(
+            (*map_points)(0, i),
+            (*map_points)(1, i),
+            (*map_points)(2, i));
+
+          init_pose_lock_.lock();
+          Eigen::Isometry3d corrected_point_iso = init_pose_.get_isometry() * point_iso;
+          init_pose_lock_.unlock();
+
+          *iter_x = corrected_point_iso.translation().x();
+          *iter_y = corrected_point_iso.translation().y();
+          *iter_z = corrected_point_iso.translation().z();
+        }
 
         ++iter_x;
         ++iter_y;

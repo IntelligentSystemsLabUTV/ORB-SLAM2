@@ -1,6 +1,7 @@
 /orbslam2/orbslam2_driver:
   ros__parameters:
     autostart: true
+    body_frame_id: base_link
     camera_orientation_topic: /zed/zed_2i_driver/imu
     camera_topic_1: /zed/zed_2i_driver/left/image_rect_color
     camera_topic_2: /zed/zed_2i_driver/right/image_rect_color
@@ -15,6 +16,7 @@
     publish_tf: true
     orb2_config_path: /home/neo/workspace/src/orbslam2_driver/config/ORB2_ZED2i_Stereo_VGA.yaml
     save_map: false
+    set_gravity_as_origin: true
     start_localization: false
     subscriber_depth: 30
     tracking_cpu: -1

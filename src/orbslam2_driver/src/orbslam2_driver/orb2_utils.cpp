@@ -22,7 +22,7 @@ namespace ORB_SLAM2Driver
 bool ORB_SLAM2DriverNode::init_orbslam2()
 {
   // Subscribe to camera orientation topic
-  if (global_frame_id_.empty()) {
+  if (global_frame_id_.empty() && set_gravity_as_origin_) {
     camera_imu_sub_ = this->create_subscription<Imu>(
       camera_orientation_topic_,
       DUAQoS::get_datum_qos(),
